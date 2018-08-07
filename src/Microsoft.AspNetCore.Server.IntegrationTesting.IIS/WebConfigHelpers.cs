@@ -12,8 +12,8 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
         {
             return (element, _) => {
                 element
-                    .AddOrUpdate("system.webServer")
-                    .AddOrUpdate("aspNetCore")
+                    .GetOrAdd("system.webServer")
+                    .GetOrAdd("aspNetCore")
                     .SetAttributeValue(key, value);
             };
         }
@@ -23,9 +23,9 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             return (element, _) =>
             {
                 element
-                    .AddOrUpdate("system.webServer")
-                    .AddOrUpdate("handlers")
-                    .AddOrUpdate("add")
+                    .GetOrAdd("system.webServer")
+                    .GetOrAdd("handlers")
+                    .GetOrAdd("add")
                     .SetAttributeValue(key, value);
             };
         }

@@ -6,8 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Security.Principal;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -24,6 +22,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
     {
         internal const int ERROR_OBJECT_NOT_FOUND = unchecked((int)0x800710D8);
         internal const int ERROR_SHARING_VIOLATION = unchecked((int)0x80070020);
+        internal const int ERROR_SERVICE_CANNOT_ACCEPT_CTRL = unchecked((int)0x80070425);
 
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(10);
         private static readonly TimeSpan _retryDelay = TimeSpan.FromMilliseconds(200);
@@ -31,6 +30,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
         private CancellationTokenSource _hostShutdownToken = new CancellationTokenSource();
 
         private string _configPath;
+        private string _debugLogFile;
 
         public Process HostProcess { get; set; }
 
@@ -50,7 +50,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
 
             TriggerHostShutdown(_hostShutdownToken);
 
-            GetLogsFromFile("debugLogs.txt");
+            GetLogsFromFile();
 
             CleanPublishedOutput();
             InvokeUserApplicationCleanup();
@@ -76,8 +76,9 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                 if (!IISDeploymentParameters.HandlerSettings.ContainsKey("debugLevel") &&
                     !IISDeploymentParameters.HandlerSettings.ContainsKey("debugFile"))
                 {
+                    _debugLogFile = Path.GetTempFileName();
                     IISDeploymentParameters.HandlerSettings["debugLevel"] = "4";
-                    IISDeploymentParameters.HandlerSettings["debugFile"] = "debugLogs.txt";
+                    IISDeploymentParameters.HandlerSettings["debugFile"] = _debugLogFile;
                 }
 
                 if (DeploymentParameters.ApplicationType == ApplicationType.Portable)
@@ -115,23 +116,23 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             }
         }
 
-        private void GetLogsFromFile(string file)
+        private void GetLogsFromFile()
         {
             var arr = new string[0];
 
-            RetryHelper.RetryOperation(() => arr = File.ReadAllLines(Path.Combine(DeploymentParameters.PublishedApplicationRootPath, file)),
-                            (ex) => Logger.LogWarning("Could not read log file"),
+            RetryHelper.RetryOperation(() => arr = File.ReadAllLines(Path.Combine(DeploymentParameters.PublishedApplicationRootPath, _debugLogFile)),
+                            (ex) => Logger.LogWarning(ex, "Could not read log file"),
                             5,
                             200);
-
-            if (arr.Length == 0)
-            {
-                Logger.LogWarning($"{file} is empty.");
-            }
 
             foreach (var line in arr)
             {
                 Logger.LogInformation(line);
+            }
+
+            if (File.Exists(_debugLogFile))
+            {
+                File.Delete(_debugLogFile);
             }
         }
 
@@ -191,10 +192,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                     }
 
                 }
-                catch (Exception ex) when (
-                    ex is DllNotFoundException ||
-                    ex is COMException &&
-                    (ex.HResult == ERROR_OBJECT_NOT_FOUND || ex.HResult == ERROR_SHARING_VIOLATION))
+                catch (Exception ex) when (IsExpectedException(ex))
                 {
                     // Accessing the site.State property while the site
                     // is starting up returns the COMException
@@ -244,7 +242,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                             }
                         }
                     }
-                    catch (COMException)
+                    catch (Exception ex) when (IsExpectedException(ex))
                     {
                         // Accessing the site.State property while the site
                         // is shutdown down returns the COMException
@@ -259,9 +257,16 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             }
         }
 
+        private static bool IsExpectedException(Exception ex)
+        {
+            return ex is DllNotFoundException ||
+                   ex is COMException &&
+                   (ex.HResult == ERROR_OBJECT_NOT_FOUND || ex.HResult == ERROR_SHARING_VIOLATION || ex.HResult == ERROR_SERVICE_CANNOT_ACCEPT_CTRL);
+        }
+
         private void AddTemporaryAppHostConfig(string contentRoot, int port)
         {
-            _configPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+            _configPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("D"));
             var appHostConfigPath = Path.Combine(_configPath, "applicationHost.config");
             Directory.CreateDirectory(_configPath);
             var config = XDocument.Parse(DeploymentParameters.ServerConfigTemplateContent ?? File.ReadAllText("IIS.config"));
@@ -269,9 +274,6 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             ConfigureAppHostConfig(config.Root, contentRoot, port);
 
             config.Save(appHostConfigPath);
-
-            var oFileSecurity = new FileSecurity(appHostConfigPath, AccessControlSections.Access);
-            oFileSecurity.AddAccessRule(new FileSystemAccessRule("Everyone", FileSystemRights.FullControl, AccessControlType.Allow));
 
             using (var serverManager = new ServerManager())
             {
@@ -302,16 +304,18 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
 
         private void ConfigureAppHostConfig(XElement config, string contentRoot, int port)
         {
-            var site = config
+            var siteElement = config
                 .RequiredElement("system.applicationHost")
                 .RequiredElement("sites")
                 .RequiredElement("site");
 
-            site.RequiredElement("application")
+            siteElement
+                .RequiredElement("application")
                 .RequiredElement("virtualDirectory")
                 .SetAttributeValue("physicalPath", contentRoot);
 
-            site.RequiredElement("bindings")
+            siteElement
+                .RequiredElement("bindings")
                 .RequiredElement("binding")
                 .SetAttributeValue("bindingInformation", $"*:{port}:");
 
@@ -319,13 +323,13 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             config
                 .RequiredElement("system.webServer")
                 .RequiredElement("globalModules")
-                .AddOrUpdate("add", "name", ancmVersion)
-                .SetAttributeValue("image", GetAncmLocation());
+                .GetOrAdd("add", "name", ancmVersion)
+                .SetAttributeValue("image", GetAncmLocation(DeploymentParameters.AncmVersion));
 
             config
                 .RequiredElement("system.webServer")
                 .RequiredElement("modules")
-                .AddOrUpdate("add", "name", ancmVersion);
+                .GetOrAdd("add", "name", ancmVersion);
 
             var pool = config
                 .RequiredElement("system.applicationHost")
@@ -333,12 +337,12 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                 .RequiredElement("add");
 
             var environmentVariables = pool
-                .AddOrUpdate("environmentVariables");
+                .GetOrAdd("environmentVariables");
 
             foreach (var tuple in DeploymentParameters.EnvironmentVariables)
             {
                 environmentVariables
-                    .AddOrUpdate("add", "name", tuple.Key)
+                    .GetOrAdd("add", "name", tuple.Key)
                     .SetAttributeValue("value", tuple.Value);
             }
 

@@ -73,12 +73,12 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                 var environmentVariables = element
                     .RequiredElement("system.webServer")
                     .RequiredElement("aspNetCore")
-                    .AddOrUpdate("environmentVariables");
+                    .GetOrAdd("environmentVariables");
 
 
                 foreach (var envVar in WebConfigBasedEnvironmentVariables)
                 {
-                    environmentVariables.AddOrUpdate("handlerSetting", "name", envVar.Key)
+                    environmentVariables.GetOrAdd("environmentVariable", "name", envVar.Key)
                         .SetAttributeValue("value", envVar.Value);
                 }
             };
@@ -96,11 +96,11 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                 var handlerSettings = element
                     .RequiredElement("system.webServer")
                     .RequiredElement("aspNetCore")
-                    .AddOrUpdate("handlerSettings");
+                    .GetOrAdd("handlerSettings");
 
                 foreach (var handlerSetting in HandlerSettings)
                 {
-                    handlerSettings.AddOrUpdate("handlerSetting", "name", handlerSetting.Key)
+                    handlerSettings.GetOrAdd("handlerSetting", "name", handlerSetting.Key)
                         .SetAttributeValue("value", handlerSetting.Value);
                 }
             };

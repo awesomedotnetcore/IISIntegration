@@ -20,7 +20,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             return existing;
         }
 
-        public static XElement AddOrUpdate(this XElement element, string name)
+        public static XElement GetOrAdd(this XElement element, string name)
         {
             var existing = element.Element(name);
             if (existing == null)
@@ -32,7 +32,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             return existing;
         }
 
-        public static XElement AddOrUpdate(this XElement element, string name, string attribute, string attributeValue)
+        public static XElement GetOrAdd(this XElement element, string name, string attribute, string attributeValue)
         {
             var existing = element.Elements(name).FirstOrDefault(e => e.Attribute(attribute)?.Value == attributeValue);
             if (existing == null)
