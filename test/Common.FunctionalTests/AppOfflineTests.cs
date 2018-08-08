@@ -43,6 +43,22 @@ namespace Microsoft.AspNetCore.Server.IIS.FunctionalTests
         }
 
         [ConditionalTheory]
+        [InlineData(HostingModel.InProcess)]
+        [InlineData(HostingModel.OutOfProcess)]
+        public async Task LockedAppOfflineDroppedWhileSiteIsDown_SiteReturns503(HostingModel hostingModel)
+        {
+            var deploymentResult = await DeployApp(hostingModel);
+
+            // Add app_offline without shared access
+            using (File.Open(Path.Combine(deploymentResult.ContentRoot, "app_offline.htm"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+            {
+                await AssertAppOffline(deploymentResult, "");
+            }
+
+            DeletePublishOutput(deploymentResult);
+        }
+
+        [ConditionalTheory]
         [InlineData(HostingModel.InProcess, 500, "500.0")]
         [InlineData(HostingModel.OutOfProcess, 502, "502.5")]
         public async Task AppOfflineDroppedWhileSiteFailedToStartInShim_AppOfflineServed(HostingModel hostingModel, int statusCode, string content)
@@ -259,7 +275,13 @@ namespace Microsoft.AspNetCore.Server.IIS.FunctionalTests
 
         private static async Task AssertRunning(IISDeploymentResult deploymentResult)
         {
-            var response = await deploymentResult.RetryingHttpClient.GetAsync("HelloWorld");
+            HttpResponseMessage response = null;
+
+            for (var i = 0; i < 5 && response?.IsSuccessStatusCode != true; i++)
+            {
+                response = await deploymentResult.HttpClient.GetAsync("HelloWorld");
+                await Task.Delay(RetryDelay);
+            }
 
             var responseText = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hello World", responseText);
