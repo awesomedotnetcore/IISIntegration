@@ -96,7 +96,7 @@ HandlerResolver::LoadRequestHandlerAssembly(STRU& location, ASPNETCORE_SHIM_CONF
 }
 
 HRESULT
-HandlerResolver::FindRequestHandlerAssembly(IHttpApplication &pApplication, STRU& location, PFN_ASPNETCORE_CREATE_APPLICATION * pfnCreateApplication)
+HandlerResolver::GetApplicationFactory(IHttpApplication &pApplication, STRU& location, PFN_ASPNETCORE_CREATE_APPLICATION * pfnCreateApplication)
 {
     ASPNETCORE_SHIM_CONFIG pConfiguration;
     RETURN_IF_FAILED(pConfiguration.Populate(&m_pServer, &pApplication));

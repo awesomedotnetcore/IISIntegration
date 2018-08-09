@@ -73,7 +73,7 @@ APPLICATION_INFO::GetOrCreateApplication(
     {
         STRU struExeLocation;
         PFN_ASPNETCORE_CREATE_APPLICATION      pfnAspNetCoreCreateApplication;
-        FINISHED_IF_FAILED(m_handlerResolver->FindRequestHandlerAssembly(httpApplication, struExeLocation, &pfnAspNetCoreCreateApplication));
+        FINISHED_IF_FAILED(m_handlerResolver->GetApplicationFactory(httpApplication, struExeLocation, &pfnAspNetCoreCreateApplication));
         std::array<APPLICATION_PARAMETER, 1> parameters {
             {"InProcessExeLocation", struExeLocation.QueryStr()}
         };

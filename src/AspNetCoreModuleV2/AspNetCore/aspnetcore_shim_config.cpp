@@ -24,10 +24,10 @@ ASPNETCORE_SHIM_CONFIG::Populate(
 
     const CComBSTR bstrAspNetCoreSection = CS_ASPNETCORE_SECTION;
 
-    const CComBSTR aplicationConfigPath = pHttpApplication->GetAppConfigPath();
+    const CComBSTR applicationConfigPath = pHttpApplication->GetAppConfigPath();
 
     RETURN_IF_FAILED(pAdminManager->GetAdminSection(bstrAspNetCoreSection,
-        aplicationConfigPath,
+        applicationConfigPath,
         &pAspNetCoreElement));
 
     RETURN_IF_FAILED(GetElementStringProperty(pAspNetCoreElement,

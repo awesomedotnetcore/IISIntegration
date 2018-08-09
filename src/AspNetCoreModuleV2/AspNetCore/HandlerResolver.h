@@ -23,7 +23,7 @@ class HandlerResolver
 {
 public:
     HandlerResolver(HMODULE hModule, IHttpServer &pServer);
-    HRESULT FindRequestHandlerAssembly(IHttpApplication &pApplication, STRU& location, PFN_ASPNETCORE_CREATE_APPLICATION *pfnCreateApplication);
+    HRESULT GetApplicationFactory(IHttpApplication &pApplication, STRU& location, PFN_ASPNETCORE_CREATE_APPLICATION *pfnCreateApplication);
 
 private:
     HRESULT LoadRequestHandlerAssembly(STRU& location, ASPNETCORE_SHIM_CONFIG * pConfiguration);

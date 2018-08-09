@@ -19,7 +19,7 @@ class APPLICATION_INFO
 {
 public:
 
-    APPLICATION_INFO(_In_ IHttpServer &pServer) :
+    APPLICATION_INFO(IHttpServer &pServer) :
         m_pServer(pServer),
         m_cRefs(1),
         m_handlerResolver(nullptr)
@@ -50,8 +50,8 @@ public:
 
     HRESULT
     Initialize(
-        _In_ IHttpApplication    &pApplication,
-        HandlerResolver          *pHandlerResolver
+        IHttpApplication    &pApplication,
+        HandlerResolver     *pHandlerResolver
     );
 
     VOID
