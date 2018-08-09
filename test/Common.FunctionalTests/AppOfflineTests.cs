@@ -50,8 +50,11 @@ namespace Microsoft.AspNetCore.Server.IIS.FunctionalTests
             var deploymentResult = await DeployApp(hostingModel);
 
             // Add app_offline without shared access
-            using (File.Open(Path.Combine(deploymentResult.ContentRoot, "app_offline.htm"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+            using (var stream = File.Open(Path.Combine(deploymentResult.ContentRoot, "app_offline.htm"), FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None))
+            using (var writer = new StreamWriter(stream))
             {
+                await writer.WriteLineAsync("App if offline but you wouldn't see this message");
+                await writer.FlushAsync();
                 await AssertAppOffline(deploymentResult, "");
             }
 
