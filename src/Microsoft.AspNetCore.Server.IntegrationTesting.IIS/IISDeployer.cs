@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using System.Xml.Linq;
 using Microsoft.AspNetCore.Server.IntegrationTesting.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Web.Administration;
-using TimeoutException = System.TimeoutException;
 
 namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
 {
@@ -23,10 +21,6 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
     /// </summary>
     public class IISDeployer : IISDeployerBase
     {
-        internal const int ERROR_OBJECT_NOT_FOUND = unchecked((int)0x800710D8);
-        internal const int ERROR_SHARING_VIOLATION = unchecked((int)0x80070020);
-        internal const int ERROR_SERVICE_CANNOT_ACCEPT_CTRL = unchecked((int)0x80070425);
-
         private const string DetailedErrorsEnvironmentVariable = "ASPNETCORE_DETAILEDERRORS";
 
         private static readonly TimeSpan _timeout = TimeSpan.FromSeconds(10);
@@ -51,7 +45,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
 
         public override void Dispose()
         {
-            StopAndDeleteAppPool();
+            Stop();
 
             TriggerHostShutdown(_hostShutdownToken);
 
@@ -129,22 +123,47 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
 
         private void GetLogsFromFile()
         {
-            var arr = new string[0];
-
-            RetryHelper.RetryOperation(() => arr = File.ReadAllLines(Path.Combine(DeploymentParameters.PublishedApplicationRootPath, _debugLogFile)),
-                            (ex) => Logger.LogWarning(ex, "Could not read log file"),
-                            5,
-                            200);
-
-            foreach (var line in arr)
+            // Handle cases where debug file is redirected by test
+            var debugLogLocations = new List<string>();
+            if (IISDeploymentParameters.HandlerSettings.ContainsKey("debugFile"))
             {
-                Logger.LogInformation(line);
+                debugLogLocations.Add(IISDeploymentParameters.HandlerSettings["debugFile"]);
             }
 
-            if (File.Exists(_debugLogFile))
+            if (DeploymentParameters.EnvironmentVariables.ContainsKey("ASPNETCORE_MODULE_DEBUG_FILE"))
             {
-                File.Delete(_debugLogFile);
+                debugLogLocations.Add(DeploymentParameters.EnvironmentVariables["ASPNETCORE_MODULE_DEBUG_FILE"]);
             }
+
+            // default debug file name
+            debugLogLocations.Add("aspnetcore-debug.log");
+
+            foreach (var debugLogLocation in debugLogLocations)
+            {
+                if (string.IsNullOrEmpty(debugLogLocation))
+                {
+                    continue;
+                }
+
+                var file = Path.Combine(DeploymentParameters.PublishedApplicationRootPath, debugLogLocation);
+                if (File.Exists(file))
+                {
+                    var lines = File.ReadAllLines(file);
+                    if (!lines.Any())
+                    {
+                        Logger.LogInformation("Debug log file found but was empty");
+                        continue;
+                    }
+
+                    foreach (var line in lines)
+                    {
+                        Logger.LogInformation(line);
+                    }
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException($"Not able to find non-empty debug log files. Tried: {string.Join(", ", debugLogLocations)}");
         }
 
         public void StartIIS(Uri uri, string contentRoot)
@@ -210,12 +229,6 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                 Logger.LogInformation("Site has started.");
             });
         }
-
-        public void StopAndDeleteAppPool()
-        {
-            Stop();
-        }
-
 
         private void AddTemporaryAppHostConfig(string contentRoot, int port)
         {
@@ -297,18 +310,6 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             {
                 RetryServerManagerAction(serverManager =>
                 {
-                    var appPool = serverManager.ApplicationPools.SingleOrDefault();
-                    if (appPool == null)
-                    {
-                        throw new InvalidOperationException("Application pool not found");
-                    }
-
-                    if (appPool.State != ObjectState.Stopped && appPool.State != ObjectState.Stopping)
-                    {
-                        var state = appPool.Stop();
-                        Logger.LogInformation($"Stopping pool, state: {state.ToString()}");
-                    }
-
                     var site = serverManager.Sites.SingleOrDefault();
                     if (site == null)
                     {
@@ -319,6 +320,18 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                     {
                         var state = site.Stop();
                         Logger.LogInformation($"Stopping site, state: {state.ToString()}");
+                    }
+
+                    var appPool = serverManager.ApplicationPools.SingleOrDefault();
+                    if (appPool == null)
+                    {
+                        throw new InvalidOperationException("Application pool not found");
+                    }
+
+                    if (appPool.State != ObjectState.Stopped && appPool.State != ObjectState.Stopping)
+                    {
+                        var state = appPool.Stop();
+                        Logger.LogInformation($"Stopping pool, state: {state.ToString()}");
                     }
 
                     if (site.State != ObjectState.Stopped)
