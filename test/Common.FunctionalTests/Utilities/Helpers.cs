@@ -106,5 +106,32 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
 
             return response;
         }
+
+        public static void AssertWorkerProcessStop(this IISDeploymentResult deploymentResult)
+        {
+            var hostProcess = deploymentResult.HostProcess;
+            Assert.True(hostProcess.WaitForExit((int)TimeoutExtensions.DefaultTimeout.TotalMilliseconds));
+
+            if (deploymentResult.DeploymentParameters.ServerType == ServerType.IISExpress)
+            {
+                Assert.Equal(0, hostProcess.ExitCode);
+            }
+        }
+
+
+        public static async Task AssertRecycledAsync(this IISDeploymentResult deploymentResult, Func<Task> verificationAction = null)
+        {
+            if (deploymentResult.DeploymentParameters.HostingModel != HostingModel.InProcess)
+            {
+                throw new NotSupportedException();
+            }
+
+            deploymentResult.AssertWorkerProcessStop();
+            if (deploymentResult.DeploymentParameters.ServerType == ServerType.IIS)
+            {
+                verificationAction = verificationAction ?? (() => deploymentResult.AssertStarts());
+                await verificationAction();
+            }
+        }
     }
 }

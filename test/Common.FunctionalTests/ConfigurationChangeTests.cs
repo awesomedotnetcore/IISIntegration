@@ -21,7 +21,6 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
         }
 
         [ConditionalFact]
-        [RequiresIIS(IISCapability.ShutdownToken)]
         public async Task ConfigurationChangeStopsInProcess()
         {
             var deploymentParameters = _fixture.GetBaseDeploymentParameters(HostingModel.InProcess, publish: true);
@@ -33,7 +32,7 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             // Just "touching" web.config should be enough
             deploymentResult.ModifyWebConfig(element => {});
 
-            deploymentResult.HostShutdownToken.WaitHandle.WaitOne(TimeoutExtensions.DefaultTimeout);
+            await deploymentResult.AssertRecycledAsync();
         }
 
         [ConditionalTheory]
