@@ -245,17 +245,7 @@ namespace Microsoft.AspNetCore.Server.IIS.FunctionalTests
 
         private async Task AssertAppOffline(IISDeploymentResult deploymentResult, string expectedResponse = "The app is offline.")
         {
-            HttpResponseMessage response = null;
-
-            for (var i = 0; i < 5 && response?.StatusCode != HttpStatusCode.ServiceUnavailable; i++)
-            {
-                // Keep retrying until app_offline is present.
-                response = await deploymentResult.HttpClient.GetAsync("HelloWorld");
-                await Task.Delay(RetryDelay);
-            }
-
-            Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
-
+            var response = await deploymentResult.HttpClient.RetryRequestAsync("HelloWorld", r => r.StatusCode == HttpStatusCode.ServiceUnavailable);
             Assert.Equal(expectedResponse, await response.Content.ReadAsStringAsync());
         }
 
@@ -278,14 +268,7 @@ namespace Microsoft.AspNetCore.Server.IIS.FunctionalTests
 
         private static async Task AssertRunning(IISDeploymentResult deploymentResult)
         {
-            HttpResponseMessage response = null;
-
-            for (var i = 0; i < 5 && response?.IsSuccessStatusCode != true; i++)
-            {
-                response = await deploymentResult.HttpClient.GetAsync("HelloWorld");
-                await Task.Delay(RetryDelay);
-            }
-
+            var response = await deploymentResult.HttpClient.RetryRequestAsync("HelloWorld", r => r.IsSuccessStatusCode);
             var responseText = await response.Content.ReadAsStringAsync();
             Assert.Equal("Hello World", responseText);
         }
