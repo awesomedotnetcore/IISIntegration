@@ -38,7 +38,6 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
         [ConditionalTheory]
         [InlineData(AncmVersion.AspNetCoreModule)]
         [InlineData(AncmVersion.AspNetCoreModuleV2)]
-        [RequiresIIS(IISCapability.ShutdownToken)]
         public async Task ConfigurationChangeForcesChildProcessRestart(AncmVersion version)
         {
             var deploymentParameters = _fixture.GetBaseDeploymentParameters(HostingModel.OutOfProcess, publish: true);
