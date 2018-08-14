@@ -9,11 +9,7 @@
 
 HRESULT AppOfflineApplication::CreateHandler(IHttpContext* pHttpContext, IREQUEST_HANDLER** pRequestHandler)
 {
-    try
-    {
-        *pRequestHandler = new AppOfflineHandler(pHttpContext, m_strAppOfflineContent);
-    }
-    CATCH_RETURN();
+    *pRequestHandler = new AppOfflineHandler(pHttpContext, m_strAppOfflineContent);
 
     return S_OK;
 }

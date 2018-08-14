@@ -99,11 +99,7 @@ public:
     {
         if(m_pApplicationInfoHash == NULL)
         {
-            try
-            {
-                m_pApplicationInfoHash = new APPLICATION_INFO_HASH();
-            }
-            CATCH_RETURN();
+            m_pApplicationInfoHash = new APPLICATION_INFO_HASH();
             RETURN_IF_FAILED(m_pApplicationInfoHash->Initialize(DEFAULT_HASH_BUCKETS));
         }
         return S_OK;

@@ -22,19 +22,26 @@ ASPNET_CORE_GLOBAL_MODULE::OnGlobalStopListening(
 {
     UNREFERENCED_PARAMETER(pProvider);
 
-    LOG_INFO("ASPNET_CORE_GLOBAL_MODULE::OnGlobalStopListening");
-
-    if (g_fInShutdown)
+    try
     {
-        // Avoid receiving two shutudown notifications.
-        return GL_NOTIFICATION_CONTINUE;
-    }
+        LOG_INFO("ASPNET_CORE_GLOBAL_MODULE::OnGlobalStopListening");
 
-    DBG_ASSERT(m_pApplicationManager);
-    // we should let application manager to shutdown all allication
-    // and dereference it as some requests may still reference to application manager
-    m_pApplicationManager->ShutDown();
-    m_pApplicationManager = NULL;
+        if (g_fInShutdown)
+        {
+            // Avoid receiving two shutudown notifications.
+            return GL_NOTIFICATION_CONTINUE;
+        }
+
+        DBG_ASSERT(m_pApplicationManager);
+        // we should let application manager to shutdown all allication
+        // and dereference it as some requests may still reference to application manager
+        m_pApplicationManager->ShutDown();
+        m_pApplicationManager = NULL;
+    }
+    catch (...)
+    {
+        OBSERVE_CAUGHT_EXCEPTION();
+    }
 
     // Return processing to the pipeline.
     return GL_NOTIFICATION_CONTINUE;
@@ -49,24 +56,31 @@ ASPNET_CORE_GLOBAL_MODULE::OnGlobalConfigurationChange(
     _In_ IGlobalConfigurationChangeProvider * pProvider
 )
 {
-    if (g_fInShutdown)
+    try
     {
-        return GL_NOTIFICATION_CONTINUE;
-    }
-    // Retrieve the path that has changed.
-    PCWSTR pwszChangePath = pProvider->GetChangePath();
-
-    LOG_INFOF("ASPNET_CORE_GLOBAL_MODULE::OnGlobalConfigurationChange %S", pwszChangePath);
-
-    // Test for an error.
-    if (NULL != pwszChangePath &&
-        _wcsicmp(pwszChangePath, L"MACHINE") != 0 &&
-        _wcsicmp(pwszChangePath, L"MACHINE/WEBROOT") != 0)
-    {
-        if (m_pApplicationManager != NULL)
+        if (g_fInShutdown)
         {
-            m_pApplicationManager->RecycleApplicationFromManager(pwszChangePath);
+            return GL_NOTIFICATION_CONTINUE;
         }
+        // Retrieve the path that has changed.
+        PCWSTR pwszChangePath = pProvider->GetChangePath();
+
+        LOG_INFOF("ASPNET_CORE_GLOBAL_MODULE::OnGlobalConfigurationChange %S", pwszChangePath);
+
+        // Test for an error.
+        if (NULL != pwszChangePath &&
+            _wcsicmp(pwszChangePath, L"MACHINE") != 0 &&
+            _wcsicmp(pwszChangePath, L"MACHINE/WEBROOT") != 0)
+        {
+            if (m_pApplicationManager != NULL)
+            {
+                m_pApplicationManager->RecycleApplicationFromManager(pwszChangePath);
+            }
+        }
+    }
+    catch (...)
+    {
+        OBSERVE_CAUGHT_EXCEPTION();
     }
 
     // Return processing to the pipeline.

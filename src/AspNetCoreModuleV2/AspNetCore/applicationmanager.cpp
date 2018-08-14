@@ -28,8 +28,6 @@ APPLICATION_MANAGER::GetOrCreateApplicationInfo(
     APPLICATION_INFO       *pApplicationInfo = NULL;
     PCWSTR                  pszApplicationId = NULL;
 
-    STACK_STRU ( strEventMsg, 256 );
-
     DBG_ASSERT(pHttpContext);
     DBG_ASSERT(ppApplicationInfo);
 
@@ -208,19 +206,12 @@ APPLICATION_MANAGER::RecycleApplicationFromManager(
         // calling RecycleApplication on each of them.
         while (path != NULL)
         {
-            APPLICATION_INFO* pRecord;
-
-            // Application got recycled. Log an event
-            STACK_STRU(strEventMsg, 256);
-            if (SUCCEEDED(strEventMsg.SafeSnwprintf(
+            EventLog::Info(
+                ASPNETCORE_EVENT_RECYCLE_CONFIGURATION,
                 ASPNETCORE_EVENT_RECYCLE_CONFIGURATION_MSG,
-                path)))
-            {
-                EventLog::Info(
-                    ASPNETCORE_EVENT_RECYCLE_CONFIGURATION,
-                    strEventMsg.QueryStr());
-            }
+                path);
 
+            APPLICATION_INFO* pRecord;
             table->FindKey(path, &pRecord);
             DBG_ASSERT(pRecord != NULL);
 
@@ -241,15 +232,11 @@ Finished:
     if (FAILED(hr))
     {
         // Failed to recycle an application. Log an event
-        STACK_STRU(strEventMsg, 256);
-        if  (SUCCEEDED(strEventMsg.SafeSnwprintf(
-                ASPNETCORE_EVENT_RECYCLE_FAILURE_CONFIGURATION_MSG,
-                pszApplicationId)))
-        {
-            EventLog::Error(
-                ASPNETCORE_EVENT_RECYCLE_APP_FAILURE,
-                strEventMsg.QueryStr());
-        }
+        EventLog::Error(
+            ASPNETCORE_EVENT_RECYCLE_APP_FAILURE,
+            ASPNETCORE_EVENT_RECYCLE_FAILURE_CONFIGURATION_MSG,
+            pszApplicationId);
+
         // Need to recycle the process as we cannot recycle the application
         if (!g_fRecycleProcessCalled)
         {
