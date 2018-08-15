@@ -40,8 +40,8 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
                         .RequiredElement("system.webServer")
                         .RequiredElement("security")
                         .RequiredElement("authentication")
-                        .RequiredElement("windowsAuthentication")
-                        .SetAttributeValue("enabled", "false");
+                        .Element("windowsAuthentication")
+                        ?.SetAttributeValue("enabled", "false");
                 });
 
             var deploymentResult = await DeployAsync(deploymentParameters);

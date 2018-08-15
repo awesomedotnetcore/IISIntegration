@@ -148,12 +148,6 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                 .RequiredElement("globalModules")
                 .GetOrAdd("add", "name", ancmVersion)
                 .SetAttributeValue("image", GetAncmLocation(DeploymentParameters.AncmVersion));
-
-            // In IISExpress system.webServer/modules in under location element
-            (config.Element("location") ?? config)
-                .RequiredElement("system.webServer")
-                .RequiredElement("modules")
-                .GetOrAdd("add", "name", ancmVersion);
         }
     }
 }

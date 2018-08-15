@@ -277,6 +277,13 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
         private void ConfigureAppHostConfig(XElement config, string contentRoot, int port)
         {
             ConfigureModuleAndBinding(config, contentRoot, port);
+
+            // In IISExpress system.webServer/modules in under location element
+            config
+                .RequiredElement("system.webServer")
+                .RequiredElement("modules")
+                .GetOrAdd("add", "name", DeploymentParameters.AncmVersion.ToString());
+
             var pool = config
                 .RequiredElement("system.applicationHost")
                 .RequiredElement("applicationPools")

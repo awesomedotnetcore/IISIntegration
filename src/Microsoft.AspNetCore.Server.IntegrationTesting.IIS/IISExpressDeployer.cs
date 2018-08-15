@@ -277,6 +277,12 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
             // Pass on the applicationhost.config to iis express. With this don't need to pass in the /path /port switches as they are in the applicationHost.config
             // We take a copy of the original specified applicationHost.Config to prevent modifying the one in the repo.
 
+            config.Root
+                .RequiredElement("location")
+                .RequiredElement("system.webServer")
+                .RequiredElement("modules")
+                .GetOrAdd("add", "name", DeploymentParameters.AncmVersion.ToString());
+
             ConfigureModuleAndBinding(config.Root, contentRoot, port);
 
             if (!DeploymentParameters.PublishApplicationBeforeDeployment)
