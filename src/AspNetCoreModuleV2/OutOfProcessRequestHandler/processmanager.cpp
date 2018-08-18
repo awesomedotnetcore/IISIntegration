@@ -139,7 +139,6 @@ PROCESS_MANAGER::GetProcess(
                 pConfig->QueryRapidFailsPerMinute());
 
             RETURN_IF_FAILED(HRESULT_FROM_WIN32(ERROR_SERVER_DISABLED));
-            goto Finished;
         }
 
         if (m_ppServerProcessList[dwProcessIndex] == NULL)
@@ -172,7 +171,6 @@ PROCESS_MANAGER::GetProcess(
         }
 
         m_ppServerProcessList[dwProcessIndex] = pSelectedServerProcess.release();
-
     }
     *ppServerProcess = m_ppServerProcessList[dwProcessIndex];
 
