@@ -132,74 +132,75 @@ EnsureOutOfProcessInitializtion()
         FINISHED(S_OK);
     }
 
-    auto lock = SRWExclusiveLock(g_srwLockRH);
-
-    if (g_fOutOfProcessInitializeError)
     {
-        FINISHED(E_NOT_VALID_STATE);
-    }
+        auto lock = SRWExclusiveLock(g_srwLockRH);
 
-    if (g_fOutOfProcessInitialize)
-    {
-        // Done by another thread
-        FINISHED(S_OK);
-    }
-
-    g_hWinHttpModule = GetModuleHandle(TEXT("winhttp.dll"));
-
-    g_hAspNetCoreModule = GetModuleHandle(TEXT("aspnetcorev2.dll"));
-
-    hr = WINHTTP_HELPER::StaticInitialize();
-    if (FAILED_LOG(hr))
-    {
-        if (hr == HRESULT_FROM_WIN32(ERROR_PROC_NOT_FOUND))
+        if (g_fOutOfProcessInitializeError)
         {
-            g_fWebSocketStaticInitialize = FALSE;
+            FINISHED(E_NOT_VALID_STATE);
         }
-        else
+
+        if (g_fOutOfProcessInitialize)
         {
-            FINISHED(hr);
+            // Done by another thread
+            FINISHED(S_OK);
         }
+
+        g_hWinHttpModule = GetModuleHandle(TEXT("winhttp.dll"));
+
+        g_hAspNetCoreModule = GetModuleHandle(TEXT("aspnetcorev2.dll"));
+
+        hr = WINHTTP_HELPER::StaticInitialize();
+        if (FAILED_LOG(hr))
+        {
+            if (hr == HRESULT_FROM_WIN32(ERROR_PROC_NOT_FOUND))
+            {
+                g_fWebSocketStaticInitialize = FALSE;
+            }
+            else
+            {
+                FINISHED(hr);
+            }
+        }
+
+        g_hWinhttpSession = WinHttpOpen(L"",
+            WINHTTP_ACCESS_TYPE_NO_PROXY,
+            WINHTTP_NO_PROXY_NAME,
+            WINHTTP_NO_PROXY_BYPASS,
+            WINHTTP_FLAG_ASYNC);
+        FINISHED_LAST_ERROR_IF(g_hWinhttpSession == NULL);
+
+        //
+        // Don't set non-blocking callbacks WINHTTP_OPTION_ASSURED_NON_BLOCKING_CALLBACKS,
+        // as we will call WinHttpQueryDataAvailable to get response on the same thread
+        // that we received callback from Winhttp on completing sending/forwarding the request
+        //
+
+        //
+        // Setup the callback function
+        //
+        FINISHED_LAST_ERROR_IF(WinHttpSetStatusCallback(g_hWinhttpSession,
+            FORWARDING_HANDLER::OnWinHttpCompletion,
+            (WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS |
+                WINHTTP_CALLBACK_STATUS_SENDING_REQUEST),
+            NULL) == WINHTTP_INVALID_STATUS_CALLBACK);
+
+        //
+        // Make sure we see the redirects (rather than winhttp doing it
+        // automatically)
+        //
+        DWORD dwRedirectOption = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
+        FINISHED_LAST_ERROR_IF(!WinHttpSetOption(g_hWinhttpSession,
+            WINHTTP_OPTION_REDIRECT_POLICY,
+            &dwRedirectOption,
+            sizeof(dwRedirectOption)));
+
+        g_dwTlsIndex = TlsAlloc();
+        FINISHED_LAST_ERROR_IF(g_dwTlsIndex == TLS_OUT_OF_INDEXES);
+        FINISHED_IF_FAILED(ALLOC_CACHE_HANDLER::StaticInitialize());
+        FINISHED_IF_FAILED(FORWARDING_HANDLER::StaticInitialize(g_fEnableReferenceCountTracing));
+        FINISHED_IF_FAILED(WEBSOCKET_HANDLER::StaticInitialize(g_fEnableReferenceCountTracing));
     }
-
-    g_hWinhttpSession = WinHttpOpen(L"",
-        WINHTTP_ACCESS_TYPE_NO_PROXY,
-        WINHTTP_NO_PROXY_NAME,
-        WINHTTP_NO_PROXY_BYPASS,
-        WINHTTP_FLAG_ASYNC);
-    FINISHED_LAST_ERROR_IF (g_hWinhttpSession == NULL);
-
-    //
-    // Don't set non-blocking callbacks WINHTTP_OPTION_ASSURED_NON_BLOCKING_CALLBACKS,
-    // as we will call WinHttpQueryDataAvailable to get response on the same thread
-    // that we received callback from Winhttp on completing sending/forwarding the request
-    //
-
-    //
-    // Setup the callback function
-    //
-    FINISHED_LAST_ERROR_IF(WinHttpSetStatusCallback(g_hWinhttpSession,
-        FORWARDING_HANDLER::OnWinHttpCompletion,
-        (WINHTTP_CALLBACK_FLAG_ALL_COMPLETIONS |
-            WINHTTP_CALLBACK_STATUS_SENDING_REQUEST),
-        NULL) == WINHTTP_INVALID_STATUS_CALLBACK);
-
-    //
-    // Make sure we see the redirects (rather than winhttp doing it
-    // automatically)
-    //
-    DWORD dwRedirectOption = WINHTTP_OPTION_REDIRECT_POLICY_NEVER;
-    FINISHED_LAST_ERROR_IF(!WinHttpSetOption(g_hWinhttpSession,
-        WINHTTP_OPTION_REDIRECT_POLICY,
-        &dwRedirectOption,
-        sizeof(dwRedirectOption)));
-
-    g_dwTlsIndex = TlsAlloc();
-    FINISHED_LAST_ERROR_IF(g_dwTlsIndex == TLS_OUT_OF_INDEXES);
-    FINISHED_IF_FAILED(ALLOC_CACHE_HANDLER::StaticInitialize());
-    FINISHED_IF_FAILED(FORWARDING_HANDLER::StaticInitialize(g_fEnableReferenceCountTracing));
-    FINISHED_IF_FAILED(WEBSOCKET_HANDLER::StaticInitialize(g_fEnableReferenceCountTracing));
-
 Finished:
     if (FAILED(hr))
     {

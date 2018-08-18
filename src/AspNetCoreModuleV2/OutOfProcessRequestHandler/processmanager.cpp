@@ -48,6 +48,8 @@ PROCESS_MANAGER::Initialize(
                                     NULL );
         RETURN_LAST_ERROR_IF( m_hNULHandle == INVALID_HANDLE_VALUE );
     }
+
+    return S_OK;
 }
 
 PROCESS_MANAGER::~PROCESS_MANAGER()

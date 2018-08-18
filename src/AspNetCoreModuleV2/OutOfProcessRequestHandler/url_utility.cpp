@@ -39,8 +39,6 @@ Return Value:
 
 --*/
 {
-    HRESULT hr;
-
     //
     // First determine if the target is secure
     //
