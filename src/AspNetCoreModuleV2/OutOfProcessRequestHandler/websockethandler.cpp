@@ -271,7 +271,7 @@ Routine Description:
     hr = HttpGetExtendedInterface(g_pHttpServer,
             pHttpContext,
             &_pHttpContext);
-    if (FAILED_LOG (hr))
+    if (FAILED_LOG(hr))
     {
         goto Finished;
     }
@@ -357,7 +357,7 @@ Routine Description:
 Finished:
     LeaveCriticalSection(&_RequestLock);
 
-    if (FAILED_LOG (hr))
+    if (FAILED_LOG(hr))
     {
         DebugPrintf (ASPNETCORE_DEBUG_FLAG_ERROR,
             "Process Request Failed with HR=%08x", hr);
@@ -788,7 +788,7 @@ Finished:
         LeaveCriticalSection(&_RequestLock);
     }
 
-    if (FAILED_LOG (hr))
+    if (FAILED_LOG(hr))
     {
         Cleanup (cleanupReason);
 
@@ -878,7 +878,7 @@ Routine Description:
             pCompletionStatus->eBufferType
             );
 
-    if (FAILED_LOG (hr))
+    if (FAILED_LOG(hr))
     {
         cleanupReason = ClientDisconnect;
         goto Finished;
@@ -889,7 +889,7 @@ Finished:
     {
         LeaveCriticalSection(&_RequestLock);
     }
-    if (FAILED_LOG (hr))
+    if (FAILED_LOG(hr))
     {
         Cleanup (cleanupReason);
 
@@ -970,7 +970,7 @@ Finished:
     {
         LeaveCriticalSection(&_RequestLock);
     }
-    if (FAILED_LOG (hr))
+    if (FAILED_LOG(hr))
     {
         Cleanup (cleanupReason);
 
@@ -1050,7 +1050,7 @@ Routine Description:
     //
 
     hr =  DoWinHttpWebSocketSend(cbIO, BufferType);
-    if (FAILED_LOG (hr))
+    if (FAILED_LOG(hr))
     {
         cleanupReason = ServerDisconnect;
         goto Finished;
@@ -1061,7 +1061,7 @@ Finished:
     {
         LeaveCriticalSection(&_RequestLock);
     }
-    if (FAILED_LOG (hr))
+    if (FAILED_LOG(hr))
     {
         Cleanup (cleanupReason);
 

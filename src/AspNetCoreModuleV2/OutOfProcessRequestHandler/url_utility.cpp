@@ -54,12 +54,12 @@ Return Value:
     }
     else
     {
-        RETURN_IF_FAILED(HRESULT_FROM_WIN32(ERROR_INVALID_DATA));
+        RETURN_HR(HRESULT_FROM_WIN32(ERROR_INVALID_DATA));
     }
 
     if (*pszDestinationUrl == L'\0')
     {
-        RETURN_IF_FAILED(HRESULT_FROM_WIN32(ERROR_INVALID_DATA));
+        RETURN_HR(HRESULT_FROM_WIN32(ERROR_INVALID_DATA));
     }
 
     //

@@ -24,7 +24,7 @@ PROCESS_MANAGER::Initialize(
         {
             if( (result = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0 )
             {
-                RETURN_IF_FAILED(HRESULT_FROM_WIN32( result ));
+                RETURN_HR(HRESULT_FROM_WIN32( result ));
             }
             sm_fWSAStartupDone = TRUE;
         }
@@ -140,7 +140,7 @@ PROCESS_MANAGER::GetProcess(
                 ASPNETCORE_EVENT_RAPID_FAIL_COUNT_EXCEEDED_MSG,
                 pConfig->QueryRapidFailsPerMinute());
 
-            RETURN_IF_FAILED(HRESULT_FROM_WIN32(ERROR_SERVER_DISABLED));
+            RETURN_HR(HRESULT_FROM_WIN32(ERROR_SERVER_DISABLED));
         }
 
         if (m_ppServerProcessList[dwProcessIndex] == NULL)
@@ -169,7 +169,7 @@ PROCESS_MANAGER::GetProcess(
 
         if (!pSelectedServerProcess->IsReady())
         {
-            RETURN_IF_FAILED(HRESULT_FROM_WIN32(ERROR_CREATE_FAILED));
+            RETURN_HR(HRESULT_FROM_WIN32(ERROR_CREATE_FAILED));
         }
 
         m_ppServerProcessList[dwProcessIndex] = pSelectedServerProcess.release();
