@@ -40,8 +40,9 @@ HRESULT HOSTFXR_OPTIONS::Create(
         OBSERVE_CAUGHT_EXCEPTION();
 
         EventLog::Error(
-            ASPNETCORE_EVENT_INPROCESS_RH_MISSING,
-            ASPNETCORE_EVENT_INPROCESS_RH_MISSING_MSG,
+            ASPNETCORE_EVENT_INPROCESS_START_ERROR,
+            ASPNETCORE_EVENT_INPROCESS_START_ERROR_MSG,
+            pcwzApplicationPhysicalPath,
             resolutionException.get_message().c_str());
 
         return E_FAIL;

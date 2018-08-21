@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 BOOL
 HOSTFXR_UTILITY::IsDotnetExecutable(const std::filesystem::path & dotnetPath)
 {
-    return ends_with(dotnetPath, L"dotnet", true) ||  ends_with(dotnetPath, L"dotnet.exe", true);
+    return ends_with(dotnetPath, L"dotnet.exe", true);
 }
 
 void
@@ -29,24 +29,34 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
     std::vector<std::wstring> &arguments
 )
 {
-    LOG_INFOF("Resolving hostfxr parameters for application: %S arguments: %S path: %S",
+    LOG_INFOF("Resolving hostfxr parameters for application: '%S' arguments: '%S' path: '%S'",
         processPath.c_str(),
         applicationArguments.c_str(),
         applicationPhysicalPath.c_str());
 
-    const fs::path expandedProcessPath = Environment::ExpandEnvironmentVariables(processPath);
+    fs::path expandedProcessPath = Environment::ExpandEnvironmentVariables(processPath);
     const auto expandedApplicationArguments = Environment::ExpandEnvironmentVariables(applicationArguments);
 
-    LOG_INFOF("Expanded hostfxr parameters for application: %S arguments: %S",
+    LOG_INFOF("Expanded hostfxr parameters for application: '%S' arguments: '%S'",
         expandedProcessPath.c_str(),
         expandedApplicationArguments.c_str());
 
-    LOG_INFOF("Known dotnet.exe location: %S", dotnetExePath.c_str());
+    LOG_INFOF("Known dotnet.exe location: '%S'", dotnetExePath.c_str());
+
+    if (!expandedProcessPath.has_extension())
+    {
+        // The only executable extension inprocess supports
+        expandedProcessPath.replace_extension(".exe");
+    }
+    else if (!ends_with(expandedProcessPath, L".exe"))
+    {
+        throw StartupParametersResolutionException(format(L"Process path '%s' doesn't have '.exe' extension.", expandedProcessPath.c_str()));
+    }
 
     // Check if the absolute path is to dotnet or not.
     if (IsDotnetExecutable(expandedProcessPath))
     {
-        LOG_INFOF("Process path %S is dotnet, treating application as portable", expandedProcessPath.c_str());
+        LOG_INFOF("Process path '%S' is dotnet, treating application as portable", expandedProcessPath.c_str());
 
         if (dotnetExePath.empty())
         {
@@ -64,15 +74,9 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
     }
     else
     {
-        LOG_INFOF("Process path %S is not dotnet, treating application as standalone or portable with bootstrapper", expandedProcessPath.c_str());
+        LOG_INFOF("Process path '%S' is not dotnet, treating application as standalone or portable with bootstrapper", expandedProcessPath.c_str());
 
         auto executablePath = expandedProcessPath;
-
-        if (!executablePath.has_extension())
-        {
-            // The only executable extension inprocess supports
-            executablePath.replace_extension(".exe");
-        }
 
         if (executablePath.is_relative())
         {
@@ -99,11 +103,11 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
             LOG_INFOF("Checking hostfxr.dll at %S", hostFxrDllPath.c_str());
             if (!is_regular_file(hostFxrDllPath))
             {
-                LOG_INFOF("hostfxr.dll found app local, treating application as standalone", hostFxrDllPath.c_str());
+                LOG_INFOF("hostfxr.dll found app local at '%S', treating application as standalone", hostFxrDllPath.c_str());
             }
             else
             {
-                LOG_INFOF("hostfxr.dll found app local, treating application as portable with launcher", hostFxrDllPath.c_str());
+                LOG_INFOF("hostfxr.dll found app local at '%S', treating application as portable with launcher", hostFxrDllPath.c_str());
 
                 // passing "dotnet" here because we don't know where dotnet.exe should come from
                 // so trying all fallbacks is appropriate
@@ -140,7 +144,7 @@ HOSTFXR_UTILITY::ParseHostfxrArguments(
     bool expandDllPaths
 )
 {
-    LOG_INFOF("Resolving hostfxr_main arguments application: %S arguments: %S path: %S", applicationExePath.c_str(), applicationArguments.c_str(), applicationPhysicalPath.c_str());
+    LOG_INFOF("Resolving hostfxr_main arguments application: '%S' arguments: '%S' path: %S", applicationExePath.c_str(), applicationArguments.c_str(), applicationPhysicalPath.c_str());
 
     arguments = std::vector<std::wstring>();
     arguments.push_back(applicationExePath);
@@ -167,7 +171,7 @@ HOSTFXR_UTILITY::ParseHostfxrArguments(
                     argumentAsPath = applicationPhysicalPath / argumentAsPath;
                     if (exists(argumentAsPath))
                     {
-                        LOG_INFOF("Converted argument %S to %S", argument.c_str(), argumentAsPath.c_str());
+                        LOG_INFOF("Converted argument '%S' to %S", argument.c_str(), argumentAsPath.c_str());
                         argument = argumentAsPath;
                     }
                 }
@@ -178,7 +182,7 @@ HOSTFXR_UTILITY::ParseHostfxrArguments(
     }
     else
     {
-        throw StartupParametersResolutionException(L"application arguments are empty");
+        throw StartupParametersResolutionException(L"Application arguments are empty.");
     }
 
     for (size_t i = 0; i < arguments.size(); i++)
@@ -207,21 +211,11 @@ HOSTFXR_UTILITY::GetAbsolutePathToDotnet(
     //
     // If we are given an absolute path to dotnet.exe, we are done
     //
-    if (is_regular_file(requestedPath))
+    if (is_regular_file(processPath))
     {
-        LOG_INFOF("Found dotnet.exe at %S", requestedPath.c_str());
+        LOG_INFOF("Found dotnet.exe at %S", processPath.c_str());
 
-        return requestedPath;
-    }
-
-    auto pathWithExe = requestedPath;
-    pathWithExe.concat(L".exe");
-
-    if (is_regular_file(pathWithExe))
-    {
-        LOG_INFOF("Found dotnet.exe at %S", pathWithExe.c_str());
-
-        return pathWithExe;
+        return processPath;
     }
 
     // At this point, we are calling where.exe to find dotnet.
@@ -232,7 +226,7 @@ HOSTFXR_UTILITY::GetAbsolutePathToDotnet(
     {
         LOG_INFOF("Absolute path to dotnet.exe was not found at %S", requestedPath.c_str());
 
-        throw StartupParametersResolutionException(format(L"Unable to detect dotnet.exe at '%s' or '%s'", processPath.c_str(), pathWithExe.c_str()));
+        throw StartupParametersResolutionException(format(L"Could not find dotnet.exe at '%s'", processPath.c_str()));
     }
 
     const auto dotnetViaWhere = InvokeWhereToFindDotnet();
@@ -252,7 +246,10 @@ HOSTFXR_UTILITY::GetAbsolutePathToDotnet(
     }
 
     LOG_INFOF("dotnet.exe not found");
-    throw StartupParametersResolutionException(format(L"Unable to detect dotnet.exe at '%s', '%s', via 'dotnet where' invocation or in default Program Files installation location", processPath.c_str(), pathWithExe.c_str()));
+    throw StartupParametersResolutionException(format(
+        L"Could not find dotnet.exe at '%s' or using the system PATH environment variable."
+        " Check that a valid path to dotnet is on the PATH and the bitness of dotnet matches the bitness of the IIS worker process.",
+        processPath.c_str()));
 }
 
 fs::path

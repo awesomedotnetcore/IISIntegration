@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Server.IIS.FunctionalTests.Utilities;
 using Microsoft.AspNetCore.Server.IntegrationTesting;
@@ -40,14 +41,16 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
         }
 
         [ConditionalTheory]
-        [InlineData("bogus")]
-        [InlineData("c:\\random files\\dotnet.exe")]
-        [InlineData(".\\dotnet.exe")]
-        public async Task InvalidProcessPath_ExpectServerError(string path)
+        [InlineData("bogus", "", @"Executable was not found at '.*?\\bogus.exe")]
+        [InlineData("c:\\random files\\dotnet.exe", "something.dll", @"Could not find dotnet.exe at '.*?\\.\\dotnet.exe'")]
+        [InlineData(".\\dotnet.exe", "something.dll", @"Could not find dotnet.exe at '.*?\\.\\dotnet.exe'")]
+        [InlineData("dotnet.exe", "", @"Application arguments are empty.")]
+        [InlineData("dotnet.zip", "", @"Process path '.*?\\dotnet.zip' doesn't have '.exe' extension.")]
+        public async Task InvalidProcessPath_ExpectServerError(string path, string arguments, string subError)
         {
             var deploymentParameters = _fixture.GetBaseDeploymentParameters(publish: true);
             deploymentParameters.WebConfigActionList.Add(WebConfigHelpers.AddOrModifyAspNetCoreSection("processPath", path));
-
+            deploymentParameters.WebConfigActionList.Add(WebConfigHelpers.AddOrModifyAspNetCoreSection("arguments", arguments));
 
             var deploymentResult = await DeployAsync(deploymentParameters);
 
@@ -57,7 +60,7 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
 
             StopServer();
 
-            EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, @"Invalid or unknown processPath provided in web\.config: processPath = '.+', ErrorCode = '0x80070002'\.");
+            EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, $@"Application '{Regex.Escape(deploymentResult.ContentRoot)}\\' wasn't able to start. {subError}");
         }
 
         [ConditionalFact]
