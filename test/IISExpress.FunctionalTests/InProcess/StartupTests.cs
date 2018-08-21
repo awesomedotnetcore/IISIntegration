@@ -137,6 +137,18 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
         }
 
         [ConditionalFact]
+        public async Task StartsWithPortableAndBootstraperExe()
+        {
+            var deploymentParameters = _fixture.GetBaseDeploymentParameters(_fixture.InProcessTestSite, publish: true);
+            // rest publisher as it doesn't support additional parameters
+            deploymentParameters.ApplicationPublisher = null;
+            deploymentParameters.AdditionalPublishParameters = "-r win7-x64 --self-contained=false";
+            deploymentParameters.RestoreOnPublish = true;
+            var deploymentResult = await DeployAsync(deploymentParameters);
+            await deploymentResult.AssertStarts();
+        }
+
+        [ConditionalFact]
         public async Task DetectsOveriddenServer()
         {
             var deploymentResult = await DeployAsync(_fixture.GetBaseDeploymentParameters(_fixture.OverriddenServerWebSite, publish: true));

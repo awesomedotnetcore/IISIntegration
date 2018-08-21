@@ -243,9 +243,13 @@ HandlerResolver::FindNativeAssemblyFromHostfxr(
 
     while (TRUE)
     {
+        DWORD                       hostfxrArgc;
+        std::unique_ptr<PCWSTR[]>   hostfxrArgv;
+
+        hostfxrOptions->GetArguments(hostfxrArgc, hostfxrArgv);
         const auto intHostFxrExitCode = pFnHostFxrSearchDirectories(
-            hostfxrOptions.GetArgc(),
-            hostfxrOptions.GetArgv(),
+            hostfxrArgc,
+            hostfxrArgv.get(),
             struNativeSearchPaths.data(),
             dwBufferSize,
             &dwRequiredBufferSize
