@@ -145,9 +145,15 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             var deploymentParameters = _fixture.GetBaseDeploymentParameters(_fixture.InProcessTestSite, publish: true);
             // rest publisher as it doesn't support additional parameters
             deploymentParameters.ApplicationPublisher = null;
-            deploymentParameters.AdditionalPublishParameters = "-r win7-x64 --self-contained=false";
+            // ReferenceTestTasks is workaround for https://github.com/dotnet/sdk/issues/2482
+            deploymentParameters.AdditionalPublishParameters = "-p:RuntimeIdentifier=win7-x64 -p:UseAppHost=true -p:SelfContained=false -p:ReferenceTestTasks=false";
             deploymentParameters.RestoreOnPublish = true;
             var deploymentResult = await DeployAsync(deploymentParameters);
+
+            Assert.True(File.Exists(Path.Combine(deploymentResult.ContentRoot, "InProcessWebSite.exe")));
+            Assert.False(File.Exists(Path.Combine(deploymentResult.ContentRoot, "hostfxr.dll")));
+            Assert.Contains("InProcessWebSite.exe", File.ReadAllText(Path.Combine(deploymentResult.ContentRoot, "web.config")));
+
             await deploymentResult.AssertStarts();
         }
 

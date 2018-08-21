@@ -101,7 +101,7 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
 
             hostFxrDllPath = executablePath.parent_path() / "hostfxr.dll";
             LOG_INFOF("Checking hostfxr.dll at %S", hostFxrDllPath.c_str());
-            if (!is_regular_file(hostFxrDllPath))
+            if (is_regular_file(hostFxrDllPath))
             {
                 LOG_INFOF("hostfxr.dll found app local at '%S', treating application as standalone", hostFxrDllPath.c_str());
             }
@@ -115,6 +115,7 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
                 {
                     dotnetExePath = GetAbsolutePathToDotnet(applicationPhysicalPath, L"dotnet");
                 }
+                executablePath = dotnetExePath;
                 hostFxrDllPath = GetAbsolutePathToHostFxr(dotnetExePath);
             }
 
