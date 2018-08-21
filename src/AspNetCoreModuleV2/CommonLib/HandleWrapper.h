@@ -23,7 +23,7 @@ struct NullHandleTraits
 struct FindFileHandleTraits
 {
     using HandleType = HANDLE;
-    static constexpr HANDLE DefaultHandle = INVALID_HANDLE_VALUE;
+    static const HANDLE DefaultHandle;
     static void Close(HANDLE handle) { FindClose(handle); }
 };
 

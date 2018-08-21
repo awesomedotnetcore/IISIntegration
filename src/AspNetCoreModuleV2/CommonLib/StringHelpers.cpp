@@ -1,6 +1,7 @@
-#include "stdafx.h"
-#include "StringHelpers.h"
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#include "StringHelpers.h"
 
 bool ends_with(const std::wstring &source, const std::wstring &suffix, bool ignoreCase)
 {

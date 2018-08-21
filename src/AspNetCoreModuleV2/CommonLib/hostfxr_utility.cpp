@@ -13,12 +13,6 @@
 
 namespace fs = std::filesystem;
 
-BOOL
-HOSTFXR_UTILITY::IsDotnetExecutable(const std::filesystem::path & dotnetPath)
-{
-    return ends_with(dotnetPath, L"dotnet.exe", true);
-}
-
 void
 HOSTFXR_UTILITY::GetHostFxrParameters(
     const fs::path     &processPath,
@@ -136,6 +130,12 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
     }
 }
 
+BOOL
+HOSTFXR_UTILITY::IsDotnetExecutable(const std::filesystem::path & dotnetPath)
+{
+    return ends_with(dotnetPath, L"dotnet.exe", true);
+}
+
 void
 HOSTFXR_UTILITY::ParseHostfxrArguments(
     const std::wstring &applicationArguments,
@@ -150,40 +150,38 @@ HOSTFXR_UTILITY::ParseHostfxrArguments(
     arguments = std::vector<std::wstring>();
     arguments.push_back(applicationExePath);
 
-    if (!applicationArguments.empty())
-    {
-        int argc = 0;
-        auto pwzArgs = std::unique_ptr<LPWSTR[], LocalFreeDeleter>(CommandLineToArgvW(applicationArguments.c_str(), &argc));
-        if (!pwzArgs)
-        {
-            throw StartupParametersResolutionException(format(L"Unable parse command line argumens '%s' or '%s'", applicationArguments.c_str()));
-        }
-
-        for (int intArgsProcessed = 0; intArgsProcessed < argc; intArgsProcessed++)
-        {
-            std::wstring argument = pwzArgs[intArgsProcessed];
-
-            // Try expanding arguments ending in .dll to a full paths
-            if (expandDllPaths && ends_with(argument, L".dll", true))
-            {
-                fs::path argumentAsPath = argument;
-                if (argumentAsPath.is_relative())
-                {
-                    argumentAsPath = applicationPhysicalPath / argumentAsPath;
-                    if (exists(argumentAsPath))
-                    {
-                        LOG_INFOF("Converted argument '%S' to %S", argument.c_str(), argumentAsPath.c_str());
-                        argument = argumentAsPath;
-                    }
-                }
-            }
-
-            arguments.push_back(argument);
-        }
-    }
-    else
+    if (applicationArguments.empty())
     {
         throw StartupParametersResolutionException(L"Application arguments are empty.");
+    }
+
+    int argc = 0;
+    auto pwzArgs = std::unique_ptr<LPWSTR[], LocalFreeDeleter>(CommandLineToArgvW(applicationArguments.c_str(), &argc));
+    if (!pwzArgs)
+    {
+        throw StartupParametersResolutionException(format(L"Unable parse command line argumens '%s' or '%s'", applicationArguments.c_str()));
+    }
+
+    for (int intArgsProcessed = 0; intArgsProcessed < argc; intArgsProcessed++)
+    {
+        std::wstring argument = pwzArgs[intArgsProcessed];
+
+        // Try expanding arguments ending in .dll to a full paths
+        if (expandDllPaths && ends_with(argument, L".dll", true))
+        {
+            fs::path argumentAsPath = argument;
+            if (argumentAsPath.is_relative())
+            {
+                argumentAsPath = applicationPhysicalPath / argumentAsPath;
+                if (exists(argumentAsPath))
+                {
+                    LOG_INFOF("Converted argument '%S' to %S", argument.c_str(), argumentAsPath.c_str());
+                    argument = argumentAsPath;
+                }
+            }
+        }
+
+        arguments.push_back(argument);
     }
 
     for (size_t i = 0; i < arguments.size(); i++)

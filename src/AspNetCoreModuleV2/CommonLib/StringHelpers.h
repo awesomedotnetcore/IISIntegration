@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 #pragma once
 
 #include <string>
@@ -14,3 +17,4 @@ std::wstring format(const std::wstring& format, Args ... args)
     swprintf(formattedBuffer.get(), size, format.c_str(), args ... );
     return std::wstring(formattedBuffer.get(), formattedBuffer.get() + size - 1);
 }
+

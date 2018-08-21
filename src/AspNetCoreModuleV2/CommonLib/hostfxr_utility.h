@@ -17,6 +17,32 @@ typedef INT(*hostfxr_main_fn) (CONST DWORD argc, CONST PCWSTR argv[]);
 class HOSTFXR_UTILITY
 {
 public:
+
+    static
+    void
+    GetHostFxrParameters(
+        const std::filesystem::path     &processPath,
+        const std::filesystem::path     &applicationPhysicalPath,
+        const std::wstring              &applicationArguments,
+        std::filesystem::path           &hostFxrDllPath,
+        std::filesystem::path           &dotnetExePath,
+        std::vector<std::wstring>       &arguments
+    );
+
+    class StartupParametersResolutionException: public std::runtime_error
+    {
+        public:
+            StartupParametersResolutionException(std::wstring msg)
+                : runtime_error("Startup parameter resulution error occured"), message(std::move(msg))
+            {
+            }
+
+            std::wstring get_message() const { return message; }
+
+        private:
+            std::wstring message;
+    };
+
     static
     void
     ParseHostfxrArguments(
@@ -28,20 +54,14 @@ public:
     );
 
     static
+    std::optional<std::filesystem::path>
+    GetAbsolutePathToDotnetFromProgramFiles();
+private:
+
+    static
     BOOL
     IsDotnetExecutable(
         const std::filesystem::path & dotnetPath
-    );
-
-    static
-    void
-    GetHostFxrParameters(
-        const std::filesystem::path     &processPath,
-        const std::filesystem::path     &applicationPhysicalPath,
-        const std::wstring              &applicationArguments,
-        std::filesystem::path           &hostFxrDllPath,
-        std::filesystem::path           &dotnetExePath,
-        std::vector<std::wstring>       &arguments
     );
 
     static
@@ -63,9 +83,6 @@ public:
         const std::filesystem::path & dotnetPath
     );
 
-    static
-    std::optional<std::filesystem::path>
-    GetAbsolutePathToDotnetFromProgramFiles();
 
     static
     std::optional<std::filesystem::path>
@@ -84,20 +101,6 @@ public:
          {
              LocalFree(ptr);
          }
-    };
-
-    class StartupParametersResolutionException: public std::runtime_error
-    {
-        public:
-            StartupParametersResolutionException(std::wstring msg)
-                : runtime_error("Startup parameter resulution error occured"), message(std::move(msg))
-            {
-            }
-
-            std::wstring get_message() const { return message; }
-
-        private:
-            std::wstring message;
     };
 };
 
