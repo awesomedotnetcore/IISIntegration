@@ -233,7 +233,7 @@ HandlerResolver::FindNativeAssemblyFromHostfxr(
         EventLog::Error(
             ASPNETCORE_EVENT_GENERAL_ERROR,
             ASPNETCORE_EVENT_HOSTFXR_DLL_INVALID_VERSION_MSG,
-            hostfxrOptions.GetHostFxrLocation()
+            hostfxrOptions->GetHostFxrLocation().c_str()
             );
         RETURN_IF_FAILED(E_FAIL);
     }

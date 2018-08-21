@@ -48,7 +48,7 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
         // The only executable extension inprocess supports
         expandedProcessPath.replace_extension(".exe");
     }
-    else if (!ends_with(expandedProcessPath, L".exe"))
+    else if (!ends_with(expandedProcessPath, L".exe", true))
     {
         throw StartupParametersResolutionException(format(L"Process path '%s' doesn't have '.exe' extension.", expandedProcessPath.c_str()));
     }
@@ -60,7 +60,7 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
 
         if (dotnetExePath.empty())
         {
-            dotnetExePath = GetAbsolutePathToDotnet(applicationPhysicalPath, processPath);
+            dotnetExePath = GetAbsolutePathToDotnet(applicationPhysicalPath, expandedProcessPath);
         }
 
         hostFxrDllPath = GetAbsolutePathToHostFxr(dotnetExePath);
@@ -290,7 +290,7 @@ HOSTFXR_UTILITY::GetAbsolutePathToHostFxr(
 // Tries to call where.exe to find the location of dotnet.exe.
 // Will check that the bitness of dotnet matches the current
 // worker process bitness.
-// Returns true if a valid dotnet was found, else false.
+// Returns true if a valid dotnet was found, else false.R
 //
 std::optional<fs::path>
 HOSTFXR_UTILITY::InvokeWhereToFindDotnet()
