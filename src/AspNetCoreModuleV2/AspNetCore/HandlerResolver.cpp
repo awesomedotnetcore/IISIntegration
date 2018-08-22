@@ -60,7 +60,7 @@ HandlerResolver::LoadRequestHandlerAssembly(IHttpApplication &pApplication, ASPN
                 pConfiguration.QueryArguments().c_str(),
                 options));
 
-            location = options->GetExeLocation();
+            location = options->GetDotnetExeLocation();
 
             RETURN_IF_FAILED(LoggingHelpers::CreateLoggingProvider(
                 pConfiguration.QueryStdoutLogEnabled(),
@@ -225,7 +225,7 @@ HandlerResolver::FindNativeAssemblyFromHostfxr(
     DWORD          dwBufferSize = s_initialGetNativeSearchDirectoriesBufferSize;
     DWORD          dwRequiredBufferSize = 0;
 
-    RETURN_LAST_ERROR_IF_NULL(m_hHostFxrDll = LoadLibraryW(hostfxrOptions.GetHostFxrLocation()));
+    RETURN_LAST_ERROR_IF_NULL(m_hHostFxrDll = LoadLibraryW(hostfxrOptions.GetHostFxrLocation().c_str()));
 
     auto pFnHostFxrSearchDirectories = reinterpret_cast<hostfxr_get_native_search_directories_fn>(GetProcAddress(m_hHostFxrDll, "hostfxr_get_native_search_directories"));
     if (pFnHostFxrSearchDirectories == nullptr)
@@ -233,7 +233,7 @@ HandlerResolver::FindNativeAssemblyFromHostfxr(
         EventLog::Error(
             ASPNETCORE_EVENT_GENERAL_ERROR,
             ASPNETCORE_EVENT_HOSTFXR_DLL_INVALID_VERSION_MSG,
-            hostfxrOptions->GetHostFxrLocation().c_str()
+            hostfxrOptions.GetHostFxrLocation().c_str()
             );
         RETURN_IF_FAILED(E_FAIL);
     }
@@ -246,7 +246,7 @@ HandlerResolver::FindNativeAssemblyFromHostfxr(
         DWORD                       hostfxrArgc;
         std::unique_ptr<PCWSTR[]>   hostfxrArgv;
 
-        hostfxrOptions->GetArguments(hostfxrArgc, hostfxrArgv);
+        hostfxrOptions.GetArguments(hostfxrArgc, hostfxrArgv);
         const auto intHostFxrExitCode = pFnHostFxrSearchDirectories(
             hostfxrArgc,
             hostfxrArgv.get(),
