@@ -57,23 +57,6 @@ public:
 
     ASPNETCORE_SHIM_CONFIG(ConfigurationSource &configurationSource);
 
-    HRESULT Create(ConfigurationSource &configurationSource, ASPNETCORE_SHIM_CONFIG &config)
-    {
-        try
-        {
-            config = ASPNETCORE_SHIM_CONFIG(configurationSource);
-        }
-        catch(ConfigurationLoadException &ex)
-        {
-            EventLog::Error(
-                ASPNETCORE_CONFIGURATION_LOAD_ERROR,
-                ASPNETCORE_CONFIGURATION_LOAD_ERROR_MSG,
-                ex.get_message().c_str());
-        }
-        CATCH_RETURN();
-        return S_OK;
-    }
-
 private:
     std::wstring                   m_strArguments;
     std::wstring                   m_strProcessPath;

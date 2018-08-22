@@ -2,6 +2,7 @@
 
 #include <string>
 #include <optional>
+#include <vector>
 #include <atlcomcli.h>
 #include "NonCopyable.h"
 
@@ -20,7 +21,7 @@ public:
 
     virtual std::vector<std::pair<std::wstring, std::wstring>> GetKeyValuePairs(const std::wstring& name) = 0;
 
-private:
+protected:
     static void ThrowRequiredException(const std::wstring& name);
 };
 
@@ -53,7 +54,7 @@ private:
 class WebConfigConfigurationSource: public ConfigurationSource
 {
 public:
-    WebConfigConfigurationSource(IAppHostAdminManager *pAdminManager, IHttpApplication *pHttpApplication)
+    WebConfigConfigurationSource(IAppHostAdminManager *pAdminManager, IHttpApplication &pHttpApplication)
         : m_manager(pAdminManager),
           m_application(pHttpApplication)
     {
@@ -63,7 +64,7 @@ public:
 
 private:
     CComPtr<IAppHostAdminManager> m_manager;
-    CComPtr<IHttpApplication> m_application;
+    IHttpApplication &m_application;
 };
 
 std::optional<std::wstring> find_element(std::vector<std::pair<std::wstring, std::wstring>>& pairs, const std::wstring& name);

@@ -65,7 +65,7 @@ HandlerResolver::LoadRequestHandlerAssembly(IHttpApplication &pApplication, ASPN
             RETURN_IF_FAILED(LoggingHelpers::CreateLoggingProvider(
                 pConfiguration.QueryStdoutLogEnabled(),
                 !m_pServer.IsCommandLineLaunch(),
-                pConfiguration.QueryStdoutLogFile()->QueryStr(),
+                pConfiguration.QueryStdoutLogFile().c_str(),
                 pApplication.GetApplicationPhysicalPath(),
                 outputManager));
 
@@ -129,8 +129,8 @@ HandlerResolver::GetApplicationFactory(IHttpApplication &pApplication, std::uniq
 {
     try
     {
-        ASPNETCORE_SHIM_CONFIG pConfiguration;
-        RETURN_IF_FAILED(pConfiguration.Populate(&m_pServer, &pApplication));
+        WebConfigConfigurationSource configurationSource(m_pServer.GetAdminManager(), pApplication);
+        ASPNETCORE_SHIM_CONFIG pConfiguration(configurationSource);
 
         SRWExclusiveLock lock(m_requestHandlerLoadLock);
         if (m_loadedApplicationHostingModel != HOSTING_UNKNOWN)
@@ -162,6 +162,15 @@ HandlerResolver::GetApplicationFactory(IHttpApplication &pApplication, std::uniq
         m_loadedApplicationId = pApplication.GetApplicationId();
         RETURN_IF_FAILED(LoadRequestHandlerAssembly(pApplication, pConfiguration, pApplicationFactory));
 
+    }
+    catch(ConfigurationLoadException &ex)
+    {
+        EventLog::Error(
+            ASPNETCORE_CONFIGURATION_LOAD_ERROR,
+            ASPNETCORE_CONFIGURATION_LOAD_ERROR_MSG,
+            ex.get_message().c_str());
+
+        RETURN_HR(E_FAIL);
     }
     CATCH_RETURN();
 

@@ -21,3 +21,13 @@ std::wstring format(const std::wstring& format, Args ... args)
     return std::wstring(formattedBuffer.get(), formattedBuffer.get() + size - 1);
 }
 
+template<typename ... Args>
+[[nodiscard]]
+std::string format(const std::string& format, Args ... args)
+{
+    const size_t size = sprintf_s(nullptr, 0, format.c_str(), args ...) + 1; // Extra char for '\0'
+    std::unique_ptr<char[]> formattedBuffer(new char[size]);
+    sprintf_s(formattedBuffer.get(), size, format.c_str(), args ... );
+    return std::string(formattedBuffer.get(), formattedBuffer.get() + size - 1);
+}
+
