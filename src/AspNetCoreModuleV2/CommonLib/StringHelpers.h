@@ -8,6 +8,9 @@
 [[nodiscard]]
 bool ends_with(const std::wstring &source, const std::wstring &suffix, bool ignoreCase = false);
 
+[[nodiscard]]
+bool equals_ignore_case(const std::wstring& s1, const std::wstring& s2);
+
 template<typename ... Args>
 [[nodiscard]]
 std::wstring format(const std::wstring& format, Args ... args)

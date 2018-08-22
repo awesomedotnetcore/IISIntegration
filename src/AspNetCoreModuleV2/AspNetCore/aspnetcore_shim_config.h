@@ -4,15 +4,10 @@
 #pragma once
 
 #include <string>
-#include <windows.h>
-#include <httpserv.h>
-
-#define CS_ASPNETCORE_SECTION                            L"system.webServer/aspNetCore"
-#define CS_ASPNETCORE_PROCESS_EXE_PATH                   L"processPath"
-#define CS_ASPNETCORE_PROCESS_ARGUMENTS                  L"arguments"
-#define CS_ASPNETCORE_HOSTING_MODEL                      L"hostingModel"
-#define CS_ASPNETCORE_STDOUT_LOG_ENABLED                 L"stdoutLogEnabled"
-#define CS_ASPNETCORE_STDOUT_LOG_FILE                    L"stdoutLogFile"
+#include "ConfigurationSource.h"
+#include "exceptions.h"
+#include <aspnetcore_msg.h>
+#include "EventLog.h"
 
 enum APP_HOSTING_MODEL
 {
@@ -21,65 +16,69 @@ enum APP_HOSTING_MODEL
     HOSTING_OUT_PROCESS
 };
 
-class ASPNETCORE_SHIM_CONFIG
+class ASPNETCORE_SHIM_CONFIG: NonCopyable
 {
 public:
-    virtual
-    ~ASPNETCORE_SHIM_CONFIG() = default;
-
-    HRESULT
-    Populate(
-        IHttpServer         *pHttpServer,
-        IHttpApplication    *pHttpApplication
-    );
-
-    std::wstring&
-    QueryProcessPath()
+    const std::wstring&
+    QueryProcessPath() const
     {
         return m_strProcessPath;
     }
 
-    std::wstring&
-    QueryArguments()
+    const std::wstring&
+    QueryArguments() const
     {
         return m_strArguments;
     }
 
     APP_HOSTING_MODEL
-    QueryHostingModel()
+    QueryHostingModel() const
     {
         return m_hostingModel;
     }
 
-    std::wstring&
-    QueryHandlerVersion()
+    const std::wstring&
+    QueryHandlerVersion() const
     {
         return m_strHandlerVersion;
     }
 
     BOOL
-    QueryStdoutLogEnabled()
+    QueryStdoutLogEnabled() const
     {
         return m_fStdoutLogEnabled;
     }
 
-    STRU*
-    QueryStdoutLogFile()
+    const std::wstring&
+    QueryStdoutLogFile() const
     {
-        return &m_struStdoutLogFile;
+        return m_struStdoutLogFile;
     }
 
-    ASPNETCORE_SHIM_CONFIG() :
-        m_hostingModel(HOSTING_UNKNOWN)
+    ASPNETCORE_SHIM_CONFIG(ConfigurationSource &configurationSource);
+
+    HRESULT Create(ConfigurationSource &configurationSource, ASPNETCORE_SHIM_CONFIG &config)
     {
+        try
+        {
+            config = ASPNETCORE_SHIM_CONFIG(configurationSource);
+        }
+        catch(ConfigurationLoadException &ex)
+        {
+            EventLog::Error(
+                ASPNETCORE_CONFIGURATION_LOAD_ERROR,
+                ASPNETCORE_CONFIGURATION_LOAD_ERROR_MSG,
+                ex.get_message().c_str());
+        }
+        CATCH_RETURN();
+        return S_OK;
     }
 
 private:
-
     std::wstring                   m_strArguments;
     std::wstring                   m_strProcessPath;
     APP_HOSTING_MODEL              m_hostingModel;
     std::wstring                   m_strHandlerVersion;
-    BOOL                   m_fStdoutLogEnabled;
-    STRU                   m_struStdoutLogFile;
+    bool                           m_fStdoutLogEnabled;
+    std::wstring                   m_struStdoutLogFile;
 };

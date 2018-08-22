@@ -3,78 +3,48 @@
 
 #include "aspnetcore_shim_config.h"
 
-#include "EventLog.h"
 #include "config_utility.h"
-#include "ahutil.h"
+#include "StringHelpers.h"
 
-HRESULT
-ASPNETCORE_SHIM_CONFIG::Populate(
-    IHttpServer      *pHttpServer,
-    IHttpApplication *pHttpApplication
-)
+#define CS_ASPNETCORE_SECTION                            L"system.webServer/aspNetCore"
+#define CS_ASPNETCORE_PROCESS_EXE_PATH                   L"processPath"
+#define CS_ASPNETCORE_PROCESS_ARGUMENTS                  L"arguments"
+#define CS_ASPNETCORE_HOSTING_MODEL                      L"hostingModel"
+#define CS_ASPNETCORE_STDOUT_LOG_ENABLED                 L"stdoutLogEnabled"
+#define CS_ASPNETCORE_STDOUT_LOG_FILE                    L"stdoutLogFile"
+#define CS_ASPNETCORE_HANDLER_SETTINGS                   L"handlerSettings"
+#define CS_ASPNETCORE_HANDLER_VERSION                    L"handlerVersion"
+
+ASPNETCORE_SHIM_CONFIG::ASPNETCORE_SHIM_CONFIG(ConfigurationSource &configurationSource) :
+        m_hostingModel(HOSTING_UNKNOWN),
+        m_fStdoutLogEnabled(false)
 {
-    STACK_STRU(strHostingModel, 12);
-    CComPtr<IAppHostElement>        pAspNetCoreElement;
+    auto section = configurationSource.GetSection(CS_ASPNETCORE_SECTION);
+    auto hostingModel = section->GetString(CS_ASPNETCORE_HOSTING_MODEL).value_or(L"");
 
-    IAppHostAdminManager *pAdminManager = pHttpServer->GetAdminManager();
-    const CComBSTR bstrAspNetCoreSection = CS_ASPNETCORE_SECTION;
-    const CComBSTR applicationConfigPath = pHttpApplication->GetAppConfigPath();
-
-    RETURN_IF_FAILED(pAdminManager->GetAdminSection(bstrAspNetCoreSection,
-        applicationConfigPath,
-        &pAspNetCoreElement));
-
-    CComBSTR struProcessPath;
-    RETURN_IF_FAILED(GetElementStringProperty(pAspNetCoreElement,
-        CS_ASPNETCORE_PROCESS_EXE_PATH,
-        &struProcessPath));
-    m_strProcessPath = struProcessPath;
-
-    // Swallow this error for backward compatibility
-    // Use default behavior for empty string
-    GetElementStringProperty(pAspNetCoreElement,
-        CS_ASPNETCORE_HOSTING_MODEL,
-        &strHostingModel);
-
-    if (strHostingModel.IsEmpty() || strHostingModel.Equals(L"outofprocess", TRUE))
+    if (hostingModel.empty() || equals_ignore_case(hostingModel, L"outofprocess"))
     {
         m_hostingModel = HOSTING_OUT_PROCESS;
     }
-    else if (strHostingModel.Equals(L"inprocess", TRUE))
+    else if (equals_ignore_case(hostingModel, L"inprocess"))
     {
         m_hostingModel = HOSTING_IN_PROCESS;
     }
     else
     {
-        // block unknown hosting value
-        EventLog::Error(
-            ASPNETCORE_EVENT_UNKNOWN_HOSTING_MODEL_ERROR,
-            ASPNETCORE_EVENT_UNKNOWN_HOSTING_MODEL_ERROR_MSG,
-            strHostingModel.QueryStr());
-        RETURN_HR(HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED));
+        throw ConfigurationLoadException(format(
+            L"Unknown hosting model '%s'. Please specify either hostingModel=\"inprocess\" "
+            "or hostingModel=\"outofprocess\" in the web.config file.", hostingModel.c_str()));
     }
-
-    CComBSTR struArguments;
-    RETURN_IF_FAILED(GetElementStringProperty(pAspNetCoreElement,
-        CS_ASPNETCORE_PROCESS_ARGUMENTS,
-        &struArguments));
-
-    m_strArguments = struArguments;
 
     if (m_hostingModel == HOSTING_OUT_PROCESS)
     {
-        STRU struHandlerVersion;
-        RETURN_IF_FAILED(ConfigUtility::FindHandlerVersion(pAspNetCoreElement, struHandlerVersion));
-        m_strHandlerVersion = struHandlerVersion.QueryStr();
+        auto handlerSettings = section->GetKeyValuePairs(CS_ASPNETCORE_HANDLER_SETTINGS);
+        m_strHandlerVersion = find_element(handlerSettings, CS_ASPNETCORE_HANDLER_VERSION).value_or(std::wstring());
     }
 
-
-    RETURN_IF_FAILED(GetElementBoolProperty(pAspNetCoreElement,
-        CS_ASPNETCORE_STDOUT_LOG_ENABLED,
-        &m_fStdoutLogEnabled));
-    RETURN_IF_FAILED(GetElementStringProperty(pAspNetCoreElement,
-        CS_ASPNETCORE_STDOUT_LOG_FILE,
-        &m_struStdoutLogFile));
-
-    return S_OK;
+    m_strArguments = section->GetRequiredString(CS_ASPNETCORE_PROCESS_ARGUMENTS);
+    m_strProcessPath = section->GetRequiredString(CS_ASPNETCORE_PROCESS_EXE_PATH);
+    m_fStdoutLogEnabled = section->GetRequiredBool(CS_ASPNETCORE_STDOUT_LOG_ENABLED);
+    m_struStdoutLogFile = section->GetRequiredString(CS_ASPNETCORE_STDOUT_LOG_FILE);
 }

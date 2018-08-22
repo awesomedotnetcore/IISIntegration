@@ -195,6 +195,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />
+    <ClInclude Include="ConfigurationSource.h" />
     <ClInclude Include="config_utility.h" />
     <ClInclude Include="Environment.h" />
     <ClInclude Include="EventLog.h" />
@@ -211,6 +212,7 @@
     <ClInclude Include="IOutputManager.h" />
     <ClInclude Include="irequesthandler.h" />
     <ClInclude Include="LoggingHelpers.h" />
+    <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="NullOutputManager.h" />
     <ClInclude Include="PipeOutputManager.h" />
     <ClInclude Include="StdWrapper.h" />
@@ -223,6 +225,7 @@
     <ClInclude Include="sttimer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ConfigurationSource.cpp" />
     <ClCompile Include="debugutil.cpp" />
     <ClCompile Include="Environment.cpp" />
     <ClCompile Include="EventLog.cpp" />
