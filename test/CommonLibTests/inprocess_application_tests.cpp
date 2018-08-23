@@ -24,7 +24,7 @@ namespace InprocessTests
         ON_CALL(application, GetApplicationPhysicalPath())
             .WillByDefault(testing::Return(L"Some path"));
 
-        auto requestHandlerConfig = std::unique_ptr<REQUESTHANDLER_CONFIG>(MockRequestHandlerConfig::CreateConfig());
+        auto requestHandlerConfig = std::unique_ptr<InProcessOptions>(MockRequestHandlerConfig::CreateConfig());
 
         std::wstring exePath(L"hello");
 

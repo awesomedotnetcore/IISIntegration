@@ -6,8 +6,6 @@
 #include <string>
 #include "ConfigurationSource.h"
 #include "exceptions.h"
-#include <aspnetcore_msg.h>
-#include "EventLog.h"
 
 enum APP_HOSTING_MODEL
 {
@@ -16,7 +14,7 @@ enum APP_HOSTING_MODEL
     HOSTING_OUT_PROCESS
 };
 
-class ASPNETCORE_SHIM_CONFIG: NonCopyable
+class ShimOptions: NonCopyable
 {
 public:
     const std::wstring&
@@ -55,13 +53,13 @@ public:
         return m_struStdoutLogFile;
     }
 
-    ASPNETCORE_SHIM_CONFIG(ConfigurationSource &configurationSource);
+    ShimOptions(const ConfigurationSource &configurationSource);
 
 private:
     std::wstring                   m_strArguments;
     std::wstring                   m_strProcessPath;
     APP_HOSTING_MODEL              m_hostingModel;
     std::wstring                   m_strHandlerVersion;
-    bool                           m_fStdoutLogEnabled;
     std::wstring                   m_struStdoutLogFile;
+    bool                           m_fStdoutLogEnabled;
 };

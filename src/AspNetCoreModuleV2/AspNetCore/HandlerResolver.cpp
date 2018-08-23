@@ -25,7 +25,7 @@ HandlerResolver::HandlerResolver(HMODULE hModule, IHttpServer &pServer)
 }
 
 HRESULT
-HandlerResolver::LoadRequestHandlerAssembly(IHttpApplication &pApplication, ASPNETCORE_SHIM_CONFIG& pConfiguration, std::unique_ptr<ApplicationFactory>& pApplicationFactory)
+HandlerResolver::LoadRequestHandlerAssembly(IHttpApplication &pApplication, ShimOptions& pConfiguration, std::unique_ptr<ApplicationFactory>& pApplicationFactory)
 {
     HRESULT hr;
     PCWSTR              pstrHandlerDllName;
@@ -130,19 +130,19 @@ HandlerResolver::GetApplicationFactory(IHttpApplication &pApplication, std::uniq
     try
     {
         WebConfigConfigurationSource configurationSource(m_pServer.GetAdminManager(), pApplication);
-        ASPNETCORE_SHIM_CONFIG pConfiguration(configurationSource);
+        ShimOptions options(configurationSource);
 
         SRWExclusiveLock lock(m_requestHandlerLoadLock);
         if (m_loadedApplicationHostingModel != HOSTING_UNKNOWN)
         {
             // Mixed hosting models
-            if (m_loadedApplicationHostingModel != pConfiguration.QueryHostingModel())
+            if (m_loadedApplicationHostingModel != options.QueryHostingModel())
             {
                 EventLog::Error(
                     ASPNETCORE_EVENT_MIXED_HOSTING_MODEL_ERROR,
                     ASPNETCORE_EVENT_MIXED_HOSTING_MODEL_ERROR_MSG,
                     pApplication.GetApplicationId(),
-                    pConfiguration.QueryHostingModel());
+                    options.QueryHostingModel());
 
                 return E_FAIL;
             }
@@ -158,9 +158,9 @@ HandlerResolver::GetApplicationFactory(IHttpApplication &pApplication, std::uniq
             }
         }
 
-        m_loadedApplicationHostingModel = pConfiguration.QueryHostingModel();
+        m_loadedApplicationHostingModel = options.QueryHostingModel();
         m_loadedApplicationId = pApplication.GetApplicationId();
-        RETURN_IF_FAILED(LoadRequestHandlerAssembly(pApplication, pConfiguration, pApplicationFactory));
+        RETURN_IF_FAILED(LoadRequestHandlerAssembly(pApplication, options, pApplicationFactory));
 
     }
     catch(ConfigurationLoadException &ex)
@@ -187,7 +187,7 @@ void HandlerResolver::ResetHostingModel()
 
 HRESULT
 HandlerResolver::FindNativeAssemblyFromGlobalLocation(
-    ASPNETCORE_SHIM_CONFIG& pConfiguration,
+    ShimOptions& pConfiguration,
     PCWSTR pstrHandlerDllName,
     std::wstring& handlerDllPath
 )

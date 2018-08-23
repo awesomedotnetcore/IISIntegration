@@ -1,84 +1,24 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 #pragma once
 
+#include <memory>
 #include <string>
-#include <optional>
 #include <vector>
-#include <atlcomcli.h>
 #include "NonCopyable.h"
+#include "ConfigurationSection.h"
 
-class ConfigurationSection: NonCopyable
-{
-public:
-    ConfigurationSection() = default;
-    virtual ~ConfigurationSection() = default;
-    virtual std::optional<std::wstring> GetString(const std::wstring& name) = 0;
-    virtual std::optional<bool> GetBool(const std::wstring& name) = 0;
-    virtual std::optional<DWORD> GetTimespan(const std::wstring& name) = 0;
-
-    std::wstring GetRequiredString(const std::wstring& name);
-    bool GetRequiredBool(const std::wstring& name);
-    DWORD GetRequiredTimespan(const std::wstring& name);
-
-    virtual std::vector<std::pair<std::wstring, std::wstring>> GetKeyValuePairs(const std::wstring& name) = 0;
-
-protected:
-    static void ThrowRequiredException(const std::wstring& name);
-};
+#define CS_ASPNETCORE_SECTION                            L"system.webServer/aspNetCore"
+#define CS_WINDOWS_AUTHENTICATION_SECTION                L"system.webServer/security/authentication/windowsAuthentication"
+#define CS_BASIC_AUTHENTICATION_SECTION                  L"system.webServer/security/authentication/basicAuthentication"
+#define CS_ANONYMOUS_AUTHENTICATION_SECTION              L"system.webServer/security/authentication/anonymousAuthentication"
 
 class ConfigurationSource: NonCopyable
 {
 public:
     ConfigurationSource() = default;
     virtual ~ConfigurationSource() = default;
-    virtual std::shared_ptr<ConfigurationSection> GetSection(const std::wstring& name) = 0;
-};
-
-class WebConfigConfigurationSection: public ConfigurationSection
-{
-public:
-    WebConfigConfigurationSection(IAppHostElement* pElement)
-        : m_element(pElement)
-    {
-    }
-
-    std::optional<std::wstring> GetString(const std::wstring& name) override;
-    std::optional<bool> GetBool(const std::wstring& name) override;
-    std::optional<DWORD> GetTimespan(const std::wstring& name) override;
-    std::vector<std::pair<std::wstring, std::wstring>> GetKeyValuePairs(const std::wstring& name) override;
-
-private:
-    CComPtr<IAppHostElement> m_element;
-};
-
-
-class WebConfigConfigurationSource: public ConfigurationSource
-{
-public:
-    WebConfigConfigurationSource(IAppHostAdminManager *pAdminManager, IHttpApplication &pHttpApplication)
-        : m_manager(pAdminManager),
-          m_application(pHttpApplication)
-    {
-    }
-
-    std::shared_ptr<ConfigurationSection> GetSection(const std::wstring& name) override;
-
-private:
-    CComPtr<IAppHostAdminManager> m_manager;
-    IHttpApplication &m_application;
-};
-
-std::optional<std::wstring> find_element(std::vector<std::pair<std::wstring, std::wstring>>& pairs, const std::wstring& name);
-
-class ConfigurationLoadException: public std::runtime_error
-{
-    public:
-        ConfigurationLoadException(std::wstring msg)
-            : runtime_error("Configuration load exception has occured"), message(std::move(msg))
-        {
-        }
-
-        std::wstring get_message() const { return message; }
-
-    private:
-        std::wstring message;
+    virtual std::shared_ptr<ConfigurationSection> GetSection(const std::wstring& name) const = 0;
+    std::shared_ptr<ConfigurationSection> GetRequiredSection(const std::wstring& name) const;
 };

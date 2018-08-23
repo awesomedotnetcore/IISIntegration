@@ -98,7 +98,7 @@ private:
 
  __declspec(noinline) inline VOID ReportException(LOCATION_ARGUMENTS std::exception& exception)
 {
-    DebugPrintf(ASPNETCORE_DEBUG_FLAG_ERROR, "Exception : %s caught at" LOCATION_FORMAT, exception.what(), LOCATION_CALL_ONLY);
+    DebugPrintf(ASPNETCORE_DEBUG_FLAG_ERROR, "Exception '%s' caught at " LOCATION_FORMAT, exception.what(), LOCATION_CALL_ONLY);
 }
 
  __declspec(noinline) inline HRESULT LogHResultFailed(LOCATION_ARGUMENTS HRESULT hr)
