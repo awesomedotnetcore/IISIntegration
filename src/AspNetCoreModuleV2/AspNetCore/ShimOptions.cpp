@@ -4,6 +4,7 @@
 #include "ShimOptions.h"
 
 #include "StringHelpers.h"
+#include "ConfigurationLoadException.h"
 
 #define CS_ASPNETCORE_HANDLER_VERSION                    L"handlerVersion"
 

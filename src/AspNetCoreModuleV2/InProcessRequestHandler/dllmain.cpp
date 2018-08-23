@@ -15,6 +15,8 @@
 #include "ShuttingDownApplication.h"
 #include "InProcessOptions.h"
 #include "EventLog.h"
+#include "WebConfigConfigurationSource.h"
+#include "ConfigurationLoadException.h"
 
 DECLARE_DEBUG_PRINT_OBJECT("aspnetcorev2_inprocess.dll");
 
@@ -108,7 +110,7 @@ CreateApplication(
             return S_OK;
         }
 
-        WebConfigConfigurationSource configurationSource(pServer->GetAdminManager(), *pHttpApplication);
+        const WebConfigConfigurationSource configurationSource(pServer->GetAdminManager(), *pHttpApplication);
         auto pConfig = std::make_unique<InProcessOptions>(configurationSource);
 
         BOOL disableStartupPage = pConfig->QueryDisableStartUpErrorPage();

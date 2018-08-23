@@ -12,6 +12,8 @@
 #include "file_utility.h"
 #include "LoggingHelpers.h"
 #include "resources.h"
+#include "ConfigurationLoadException.h"
+#include "WebConfigConfigurationSource.h"
 
 const PCWSTR HandlerResolver::s_pwzAspnetcoreInProcessRequestHandlerName = L"aspnetcorev2_inprocess.dll";
 const PCWSTR HandlerResolver::s_pwzAspnetcoreOutOfProcessRequestHandlerName = L"aspnetcorev2_outofprocess.dll";
@@ -129,7 +131,7 @@ HandlerResolver::GetApplicationFactory(IHttpApplication &pApplication, std::uniq
 {
     try
     {
-        WebConfigConfigurationSource configurationSource(m_pServer.GetAdminManager(), pApplication);
+        const WebConfigConfigurationSource configurationSource(m_pServer.GetAdminManager(), pApplication);
         ShimOptions options(configurationSource);
 
         SRWExclusiveLock lock(m_requestHandlerLoadLock);
