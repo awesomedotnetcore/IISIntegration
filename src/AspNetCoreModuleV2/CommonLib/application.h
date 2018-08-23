@@ -25,7 +25,6 @@ public:
         : m_fStopCalled(false),
           m_cRefs(1),
           m_applicationPhysicalPath(pHttpApplication.GetApplicationPhysicalPath()),
-          m_applicationVirtualPath(ToVirtualPath(pHttpApplication.GetApplicationPhysicalPath())),
           m_applicationConfigPath(pHttpApplication.GetAppConfigPath()),
           m_applicationId(pHttpApplication.GetApplicationId())
     {
@@ -116,10 +115,10 @@ private:
         auto segments = 0;
         auto position = configurationPath.find('/');
         // Skip first 4 segments of config path
-        while (segments != 4 && position != std::wstring::npos)
+        while (segments != 3 && position != std::wstring::npos)
         {
             segments ++;
-            position = configurationPath.find('/', position);
+            position = configurationPath.find('/', position + 1);
         }
 
         if (position != std::wstring::npos)

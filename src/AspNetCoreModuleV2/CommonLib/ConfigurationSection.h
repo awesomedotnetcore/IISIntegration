@@ -11,6 +11,7 @@
 
 #define CS_ASPNETCORE_COLLECTION_ITEM_NAME               L"name"
 #define CS_ASPNETCORE_COLLECTION_ITEM_VALUE              L"value"
+#define CS_ASPNETCORE_ENVIRONMENT_VARIABLES              L"environmentVariables"
 #define CS_ASPNETCORE_STDOUT_LOG_FILE                    L"stdoutLogFile"
 #define CS_ASPNETCORE_STDOUT_LOG_ENABLED                 L"stdoutLogEnabled"
 #define CS_ASPNETCORE_PROCESS_EXE_PATH                   L"processPath"

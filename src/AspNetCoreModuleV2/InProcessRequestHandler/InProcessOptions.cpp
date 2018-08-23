@@ -17,6 +17,7 @@ InProcessOptions::InProcessOptions(const ConfigurationSource &configurationSourc
     m_fStdoutLogEnabled = aspNetCoreSection->GetRequiredBool(CS_ASPNETCORE_STDOUT_LOG_ENABLED);
     m_struStdoutLogFile = aspNetCoreSection->GetRequiredString(CS_ASPNETCORE_STDOUT_LOG_FILE);
     m_fDisableStartUpErrorPage = aspNetCoreSection->GetRequiredBool(CS_ASPNETCORE_DISABLE_START_UP_ERROR_PAGE);
+    m_environmentVariables = aspNetCoreSection->GetKeyValuePairs(CS_ASPNETCORE_ENVIRONMENT_VARIABLES);
 
     const auto basicAuthSection = configurationSource.GetSection(CS_BASIC_AUTHENTICATION_SECTION);
     m_fBasicAuthEnabled = basicAuthSection && basicAuthSection->GetBool(CS_ENABLED).value_or(false);

@@ -66,7 +66,7 @@ std::vector<std::pair<std::wstring, std::wstring>> WebConfigConfigurationSection
         }
 
         CComBSTR strHandlerValue;
-        if (LOG_IF_FAILED(GetElementStringProperty(collectionEntry, CS_ASPNETCORE_COLLECTION_ITEM_VALUE, &strHandlerName.m_str)))
+        if (LOG_IF_FAILED(GetElementStringProperty(collectionEntry, CS_ASPNETCORE_COLLECTION_ITEM_VALUE, &strHandlerValue.m_str)))
         {
             ThrowRequiredException(CS_ASPNETCORE_COLLECTION_ITEM_VALUE);
         }

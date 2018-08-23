@@ -372,7 +372,7 @@ IN_PROCESS_APPLICATION::SetEnvironementVariablesOnWorkerProcess(
     for (auto & variable : variables)
     {
         auto pNewEntry = std::unique_ptr<ENVIRONMENT_VAR_ENTRY, ENVIRONMENT_VAR_ENTRY_DELETER>(new ENVIRONMENT_VAR_ENTRY());
-        RETURN_IF_FAILED(pNewEntry->Initialize(variable.first.c_str(), variable.second.c_str()));
+        RETURN_IF_FAILED(pNewEntry->Initialize((variable.first + L"=").c_str(), variable.second.c_str()));
         RETURN_IF_FAILED(inputTable->InsertRecord(pNewEntry.release()));
     }
 
