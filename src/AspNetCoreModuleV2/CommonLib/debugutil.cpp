@@ -146,7 +146,7 @@ bool CreateDebugLogFile(const std::wstring &debugOutputFile)
         {
             if (g_logFile != INVALID_HANDLE_VALUE)
             {
-                LOG_INFOF(L"Switching debug log files to '%ls'%", debugOutputFile.c_str());
+                LOG_INFOF(L"Switching debug log files to '%ls'", debugOutputFile.c_str());
             }
 
             SRWExclusiveLock lock(g_logFileLock);
@@ -332,8 +332,7 @@ DebugPrintW(
         {
             if (IsEnabled(ASPNETCORE_DEBUG_FLAG_CONSOLE))
             {
-            	auto outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-                WriteFileEncoded(GetConsoleOutputCP(), outputHandle, strOutput.QueryStr());
+                WriteFileEncoded(GetConsoleOutputCP(), GetStdHandle(STD_OUTPUT_HANDLE), strOutput.QueryStr());
             }
 
             if (g_logFile != INVALID_HANDLE_VALUE)

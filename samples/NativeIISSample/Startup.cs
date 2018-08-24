@@ -89,7 +89,6 @@ namespace NativeIISSample
                 {
                     await context.Response.WriteAsync("Websocket feature is disabled.");
                 }
-                await context.Response.WriteAsync(string.Join("|", Environment.GetCommandLineArgs().Skip(1)));
             });
         }
 
