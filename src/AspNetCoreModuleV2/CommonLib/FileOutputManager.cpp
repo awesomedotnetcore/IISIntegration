@@ -157,8 +157,11 @@ FileOutputManager::Stop()
     RETURN_LAST_ERROR_IF(dwFilePointer == INVALID_SET_FILE_POINTER);
 
     RETURN_LAST_ERROR_IF(!ReadFile(m_hLogFileHandle, pzFileContents, MAX_FILE_READ_SIZE, &dwNumBytesRead, NULL));
-    m_stdOutContent.resize(dwNumBytesRead);
-    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, pzFileContents, static_cast<int>(dwNumBytesRead), m_stdOutContent.data(), dwNumBytesRead);
+
+    int nChars = MultiByteToWideChar(GetConsoleOutputCP(), MB_ERR_INVALID_CHARS, pzFileContents, static_cast<int>(dwNumBytesRead), NULL, 0);
+    m_stdOutContent.resize(nChars);
+
+    MultiByteToWideChar(GetConsoleOutputCP(), MB_ERR_INVALID_CHARS, pzFileContents, static_cast<int>(dwNumBytesRead), m_stdOutContent.data(), nChars);
 
     auto content = GetStdOutContent();
     if (!content.empty())

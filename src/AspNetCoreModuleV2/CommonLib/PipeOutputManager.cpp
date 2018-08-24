@@ -151,8 +151,9 @@ HRESULT PipeOutputManager::Stop()
 
     // If we captured any output, relog it to the original stdout
     // Useful for the IIS Express scenario as it is running with stdout and stderr
-    m_stdOutContent.resize(m_numBytesReadTotal);
-    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, m_pipeContents, static_cast<int>(m_numBytesReadTotal), m_stdOutContent.data(), m_numBytesReadTotal);
+    int nChars = MultiByteToWideChar(GetConsoleOutputCP(), 0, m_pipeContents, static_cast<int>(m_numBytesReadTotal), NULL, 0);
+    m_stdOutContent.resize(nChars);
+    MultiByteToWideChar(GetConsoleOutputCP(), 0, m_pipeContents, static_cast<int>(m_numBytesReadTotal), m_stdOutContent.data(), nChars);
 
     if (!m_stdOutContent.empty())
     {
