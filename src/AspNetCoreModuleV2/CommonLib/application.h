@@ -75,7 +75,7 @@ public:
     }
 
     const std::wstring&
-    QueryApplicationPath() const
+    QueryApplicationId() const
     {
         return m_applicationId;
     }
@@ -117,7 +117,7 @@ private:
         // Skip first 4 segments of config path
         while (segments != 3 && position != std::wstring::npos)
         {
-            segments ++;
+            segments++;
             position = configurationPath.find('/', position + 1);
         }
 

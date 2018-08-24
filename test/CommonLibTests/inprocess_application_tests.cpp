@@ -30,7 +30,7 @@ namespace InprocessTests
         ON_CALL(application, GetApplicationId())
             .WillByDefault(testing::Return(L""));
 
-        auto requestHandlerConfig = std::unique_ptr<InProcessOptions>(MockRequestHandlerConfig::CreateConfig());
+        auto requestHandlerConfig = std::unique_ptr<InProcessOptions>(MockInProcessOptions::CreateConfig());
 
         std::wstring exePath(L"hello");
 
@@ -57,7 +57,7 @@ namespace InprocessTests
         ON_CALL(application, GetApplicationId())
             .WillByDefault(testing::Return(L""));
 
-        auto requestHandlerConfig = std::unique_ptr<InProcessOptions>(MockRequestHandlerConfig::CreateConfig());
+        auto requestHandlerConfig = std::unique_ptr<InProcessOptions>(MockInProcessOptions::CreateConfig());
         IN_PROCESS_APPLICATION *app = new IN_PROCESS_APPLICATION(server, application, std::move(requestHandlerConfig), nullptr, 0);
 
         ASSERT_STREQ(app->QueryApplicationVirtualPath().c_str(), L"/SECTION5");
@@ -77,7 +77,7 @@ namespace InprocessTests
         ON_CALL(application, GetApplicationId())
             .WillByDefault(testing::Return(L""));
 
-        auto requestHandlerConfig = std::unique_ptr<InProcessOptions>(MockRequestHandlerConfig::CreateConfig());
+        auto requestHandlerConfig = std::unique_ptr<InProcessOptions>(MockInProcessOptions::CreateConfig());
         IN_PROCESS_APPLICATION *app = new IN_PROCESS_APPLICATION(server, application, std::move(requestHandlerConfig), nullptr, 0);
 
         ASSERT_STREQ(app->QueryApplicationVirtualPath().c_str(), L"/");

@@ -48,7 +48,6 @@ std::vector<std::pair<std::wstring, std::wstring>> WebConfigConfigurationSection
     CComPtr<IAppHostElement>           collectionEntry = nullptr;
     ENUM_INDEX                         index{};
 
-
     if (FAILED_LOG(GetElementChildByName(m_element, name.c_str(), &element)))
     {
         return pairs;

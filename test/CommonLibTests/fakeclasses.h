@@ -177,14 +177,14 @@ public:
     MOCK_METHOD0(GetModuleContextContainer, IHttpModuleContextContainer* ());
 };
 
-class MockRequestHandlerConfig : public InProcessOptions
+class MockInProcessOptions : public InProcessOptions
 {
 public:
     static
-        MockRequestHandlerConfig*
+        MockInProcessOptions*
         CreateConfig()
     {
-        return new MockRequestHandlerConfig;
+        return new MockInProcessOptions;
     }
 };
 

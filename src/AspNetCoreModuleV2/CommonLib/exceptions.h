@@ -41,7 +41,7 @@
 #define FINISHED_LAST_ERROR_IF(condition)                       do { if (condition) { hr = LogLastError(LOCATION_INFO); goto Finished; }} while (0, 0)
 #define FINISHED_LAST_ERROR_IF_NULL(ptr)                        do { if ((ptr) == nullptr) { hr = LogLastError(LOCATION_INFO); goto Finished; }} while (0, 0)
 
-#define THROW_LAST_ERROR()                                      do { TrowHResultFailed(LogLastError(LOCATION_INFO)); } while (0, 0)
+#define THROW_LAST_ERROR()                                      do { ThrowHResultFailed(LogLastError(LOCATION_INFO)); } while (0, 0)
 #define THROW_IF_FAILED(hr)                                     do { HRESULT __hrRet = hr; if (FAILED(__hrRet)) { TrowResultException(LOCATION_INFO, __hrRet); }} while (0, 0)
 #define THROW_LAST_ERROR_IF(condition)                          do { if (condition) { TrowResultException(LogLastError(LOCATION_INFO)); }} while (0, 0)
 #define THROW_LAST_ERROR_IF_NULL(ptr)                           do { if ((ptr) == nullptr) { TrowResultException(LogLastError(LOCATION_INFO)); }} while (0, 0)
@@ -138,7 +138,7 @@ __declspec(noinline) inline HRESULT CaughtExceptionHResult(LOCATION_ARGUMENTS_ON
 }
 
 [[noreturn]]
- __declspec(noinline) inline void TrowResultException(LOCATION_ARGUMENTS HRESULT hr)
+ __declspec(noinline) inline void ThrowHResultFailed(LOCATION_ARGUMENTS HRESULT hr)
 {
     DebugPrintf(ASPNETCORE_DEBUG_FLAG_ERROR,  "Throwing ResultException for HRESULT 0x%x at " LOCATION_FORMAT, hr, LOCATION_CALL_ONLY);
     throw ResultException(hr, LOCATION_CALL_ONLY);
