@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Server.IIS.FunctionalTests.Utilities;
 using Microsoft.AspNetCore.Server.IntegrationTesting;
 using Microsoft.AspNetCore.Server.IntegrationTesting.IIS;
@@ -184,6 +186,65 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             StopServer();
 
             EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "Unknown hosting model 'bogus'. Please specify either hostingModel=\"inprocess\" or hostingModel=\"outofprocess\" in the web.config file.");
+        }
+
+
+        private static Dictionary<string, (string, Action<XElement>)> InvalidConfigTransformations = InitInvalidConfigTransformations();
+        public static IEnumerable<object[]> InvalidConfigTransformationsScenarios => InvalidConfigTransformations.ToTheoryData();
+
+        [ConditionalTheory]
+        [MemberData(nameof(InvalidConfigTransformationsScenarios))]
+        public async Task StartsWithWebConfigVariationsPortable(string scenario)
+        {
+            var (expectedError, action) = InvalidConfigTransformations[scenario];
+            var iisDeploymentParameters = _fixture.GetBaseDeploymentParameters(publish: true);
+            iisDeploymentParameters.WebConfigActionList.Add((element, _) => action(element));
+            var deploymentResult = await DeployAsync(iisDeploymentParameters);
+            var result = await deploymentResult.HttpClient.GetAsync("/HelloWorld");
+            Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
+        }
+
+        public static Dictionary<string, (string, Action<XElement>)> InitInvalidConfigTransformations()
+        {
+            var dictionary = new Dictionary<string, Func<IISDeploymentParameters, string>>();
+            var pathWithSpace = "\u03c0 \u2260 3\u00b714";
+            dictionary.Add("App in bin subdirectory full path to dll using exec and quotes",
+                parameters => {
+                    MoveApplication(parameters, "bin");
+                    TransformArguments(parameters, (arguments, root) => "exec " + Path.Combine(root, "bin", arguments));
+                    return "";
+                });
+            dictionary.Add("App in subdirectory with space",
+                parameters => {
+                    MoveApplication(parameters, pathWithSpace);
+                    TransformArguments(parameters, (arguments, root) => Path.Combine(pathWithSpace, arguments));
+                    return "";
+                });
+            dictionary.Add("App in subdirectory with space and full path to dll",
+                parameters => {
+                    MoveApplication(parameters, pathWithSpace);
+                    TransformArguments(parameters, (arguments, root) => Path.Combine(root, pathWithSpace, arguments));
+                    return "";
+                });
+            dictionary.Add("App in bin subdirectory with space full path to dll using exec and quotes",
+                parameters => {
+                    MoveApplication(parameters, pathWithSpace);
+                    TransformArguments(parameters, (arguments, root) => "exec \"" + Path.Combine(root, pathWithSpace, arguments) + "\" extra arguments");
+                    return "extra|arguments";
+                });
+            dictionary.Add("App in bin subdirectory and quoted argument",
+                parameters => {
+                    MoveApplication(parameters, "bin");
+                    TransformArguments(parameters, (arguments, root) => Path.Combine("bin", arguments) + " \"extra argument\"");
+                    return "extra argument";
+                });
+            dictionary.Add("App in bin subdirectory full path to dll",
+                parameters => {
+                    MoveApplication(parameters, "bin");
+                    TransformArguments(parameters, (arguments, root) => Path.Combine(root, "bin", arguments) + " extra arguments");
+                    return "extra|arguments";
+                });
+            return dictionary;
         }
     }
 }
