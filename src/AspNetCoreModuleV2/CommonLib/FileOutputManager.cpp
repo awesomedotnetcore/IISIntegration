@@ -158,10 +158,10 @@ FileOutputManager::Stop()
 
     RETURN_LAST_ERROR_IF(!ReadFile(m_hLogFileHandle, pzFileContents, MAX_FILE_READ_SIZE, &dwNumBytesRead, NULL));
 
-    int nChars = MultiByteToWideChar(GetConsoleOutputCP(), MB_ERR_INVALID_CHARS, pzFileContents, static_cast<int>(dwNumBytesRead), NULL, 0);
+    int nChars = MultiByteToWideChar(GetConsoleOutputCP(), 0, pzFileContents, static_cast<int>(dwNumBytesRead), NULL, 0);
     m_stdOutContent.resize(nChars);
 
-    MultiByteToWideChar(GetConsoleOutputCP(), MB_ERR_INVALID_CHARS, pzFileContents, static_cast<int>(dwNumBytesRead), m_stdOutContent.data(), nChars);
+    MultiByteToWideChar(GetConsoleOutputCP(), 0, pzFileContents, static_cast<int>(dwNumBytesRead), m_stdOutContent.data(), nChars);
 
     auto content = GetStdOutContent();
     if (!content.empty())
