@@ -29,8 +29,7 @@ LoggingHelpers::CreateLoggingProvider(
     {
         if (fIsLoggingEnabled)
         {
-            auto manager = std::make_unique<FileOutputManager>(fEnableNativeLogging);
-            hr = manager->Initialize(pwzStdOutFileName, pwzApplicationPath);
+            auto manager = std::make_unique<FileOutputManager>(pwzStdOutFileName, pwzApplicationPath, fEnableNativeLogging);
             outputManager = std::move(manager);
         }
         else if (!GetConsoleWindow())

@@ -78,21 +78,13 @@ HandlerResolver::LoadRequestHandlerAssembly(IHttpApplication &pApplication, Shim
 
             if (FAILED(hr) && m_hHostFxrDll != NULL)
             {
-                STRA content;
-                STRU struStdMsg;
-
-                outputManager->GetStdOutContent(&content);
-                if (content.QueryCCH() > 0)
-                {
-                    struStdMsg.CopyA(content.QueryStr());
-                }
+                auto output = outputManager->GetStdOutContent();
 
                 EventLog::Error(
                     ASPNETCORE_EVENT_GENERAL_ERROR,
                     ASPNETCORE_EVENT_INPROCESS_RH_ERROR_MSG,
                     handlerDllPath.empty()? s_pwzAspnetcoreInProcessRequestHandlerName : handlerDllPath.c_str(),
-                    struStdMsg.QueryStr());
-
+                    output.c_str());
             }
         }
         else

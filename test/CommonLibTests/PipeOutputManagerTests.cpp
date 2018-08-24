@@ -26,7 +26,6 @@ namespace PipeOutputManagerTests
     TEST(PipeManagerOutputTest, StdOut)
     {
         PCWSTR expected = L"test";
-        STRA output;
 
         PipeOutputManager* pManager = new PipeOutputManager(true);
 
@@ -35,15 +34,14 @@ namespace PipeOutputManagerTests
 
         ASSERT_EQ(S_OK, pManager->Stop());
 
-        pManager->GetStdOutContent(&output);
-        ASSERT_STREQ(output.QueryStr(), "test");
+        auto output = pManager->GetStdOutContent();
+        ASSERT_STREQ(output.c_str(), expected);
         delete pManager;
     }
 
     TEST(PipeManagerOutputTest, StdErr)
     {
         PCWSTR expected = L"test";
-        STRA output;
 
         PipeOutputManager* pManager = new PipeOutputManager();
 
@@ -51,15 +49,29 @@ namespace PipeOutputManagerTests
         fwprintf(stderr, expected);
         ASSERT_EQ(S_OK, pManager->Stop());
 
-        pManager->GetStdOutContent(&output);
-        ASSERT_STREQ(output.QueryStr(), "test");
+        auto output = pManager->GetStdOutContent();
+        ASSERT_STREQ(output.c_str(), expected);
+        delete pManager;
+    }
+
+    TEST(PipeManagerOutputTest, DISABLED_UnicodeNarrowString)
+    {
+        PCWSTR expected = L"彡⾔";
+
+        PipeOutputManager* pManager = new PipeOutputManager();
+
+        ASSERT_EQ(S_OK, pManager->Start());
+        fwprintf(stdout, expected);
+        ASSERT_EQ(S_OK, pManager->Stop());
+
+        auto output = pManager->GetStdOutContent();
+        ASSERT_STREQ(output.c_str(), expected);
         delete pManager;
     }
 
     TEST(PipeManagerOutputTest, CheckMaxPipeSize)
     {
         std::wstring test;
-        STRA output;
         for (int i = 0; i < 3000; i++)
         {
             test.append(L"hello world");
@@ -71,10 +83,11 @@ namespace PipeOutputManagerTests
         wprintf(test.c_str());
         ASSERT_EQ(S_OK, pManager->Stop());
 
-        pManager->GetStdOutContent(&output);
-        ASSERT_EQ(output.QueryCCH(), (DWORD)30000);
+        auto output = pManager->GetStdOutContent();
+        ASSERT_EQ(output.size(), (DWORD)30000);
         delete pManager;
     }
+
     TEST(PipeManagerOutputTest, SetInvalidHandlesForErrAndOut)
     {
         auto m_fdPreviousStdOut = _dup(_fileno(stdout));
@@ -104,7 +117,6 @@ namespace PipeOutputManagerTests
             auto stdoutBefore = _fileno(stdout);
             auto stderrBefore = _fileno(stderr);
             PCWSTR expected = L"test";
-            STRA output;
 
             PipeOutputManager* pManager = new PipeOutputManager();
 
@@ -113,8 +125,8 @@ namespace PipeOutputManagerTests
 
             ASSERT_EQ(S_OK, pManager->Stop());
 
-            pManager->GetStdOutContent(&output);
-            ASSERT_STREQ(output.QueryStr(), "test");
+            auto output = pManager->GetStdOutContent();
+            ASSERT_STREQ(output.c_str(), expected);
             ASSERT_EQ(stdoutBefore, _fileno(stdout));
             ASSERT_EQ(stderrBefore, _fileno(stderr));
             delete pManager;
@@ -131,7 +143,6 @@ namespace PipeOutputManagerTests
             auto stdoutHandle = GetStdHandle(STD_OUTPUT_HANDLE);
             auto stderrHandle = GetStdHandle(STD_ERROR_HANDLE);
             PCWSTR expected = L"test";
-            STRA output;
 
             PipeOutputManager* pManager = new PipeOutputManager();
 
@@ -139,8 +150,8 @@ namespace PipeOutputManagerTests
             fwprintf(stderr, expected);
             ASSERT_EQ(S_OK, pManager->Stop());
 
-            pManager->GetStdOutContent(&output);
-            ASSERT_STREQ(output.QueryStr(), "test");
+            auto output = pManager->GetStdOutContent();
+            ASSERT_STREQ(output.c_str(), expected);
             ASSERT_EQ(stdoutBefore, _fileno(stdout));
 
             ASSERT_EQ(stderrBefore, _fileno(stderr));

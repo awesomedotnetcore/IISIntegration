@@ -17,8 +17,8 @@ public:
     ~IOutputManager() {};
 
     virtual
-    bool
-    GetStdOutContent(STRA* struStdOutput) = 0;
+    std::wstring
+    GetStdOutContent() = 0;
 
     virtual
     HRESULT

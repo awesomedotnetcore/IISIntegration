@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Text;
 
 namespace IISTestSite
 {
@@ -40,6 +41,11 @@ namespace IISTestSite
             {
                 Console.Error.WriteLine(new string('a', 4096));
                 Console.Error.Flush();
+            }
+            else if (envVariable == "CheckUTF8")
+            {
+                Console.OutputEncoding = Encoding.UTF8;
+                Console.WriteLine("彡⾔");
             }
         }
     }

@@ -21,7 +21,7 @@ public:
 
     HRESULT Start() override;
     HRESULT Stop() override;
-    bool GetStdOutContent(STRA* straStdOutput) override;
+    std::wstring GetStdOutContent() override;
 
     // Thread functions
     void ReadStdErrHandleInternal();

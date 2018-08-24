@@ -67,6 +67,24 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             Assert.Contains(TestSink.Writes, context => context.Message.Contains(new string('a', 4096)));
         }
 
+        [ConditionalTheory(Skip ="Need debug log fixes")]
+        [InlineData("CheckUTF8")]
+        public async Task CheckUnicode(string path)
+        {
+            var deploymentParameters = _fixture.GetBaseDeploymentParameters(_fixture.StartupExceptionWebsite, publish: true);
+            deploymentParameters.WebConfigBasedEnvironmentVariables["ASPNETCORE_INPROCESS_STARTUP_VALUE"] = path;
+
+            var deploymentResult = await DeployAsync(deploymentParameters);
+
+            var response = await deploymentResult.HttpClient.GetAsync(path);
+
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+
+            StopServer();
+
+            Assert.Contains(TestSink.Writes, context => context.Message.Contains("彡⾔"));
+        }
+
         [ConditionalFact]
         public async Task Gets500_30_ErrorPage()
         {

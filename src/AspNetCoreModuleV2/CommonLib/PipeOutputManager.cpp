@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "PipeOutputManager.h"
-#include "exceptions.h"
+#include "Exceptions.h"
 #include "SRWExclusiveLock.h"
 #include "StdWrapper.h"
 #include "ntassert.h"
@@ -76,7 +76,6 @@ HRESULT PipeOutputManager::Start()
 HRESULT PipeOutputManager::Stop()
 {
     DWORD    dwThreadStatus = 0;
-    STRA     straStdOutput;
 
     if (m_disposed)
     {
@@ -152,10 +151,11 @@ HRESULT PipeOutputManager::Stop()
 
     // If we captured any output, relog it to the original stdout
     // Useful for the IIS Express scenario as it is running with stdout and stderr
-    if (GetStdOutContent(&straStdOutput))
+    auto content = GetStdOutContent();
+    if (!content.empty())
     {
         // printf will fail in in full IIS
-        if (printf(straStdOutput.QueryStr()) != -1)
+        if (wprintf(content.c_str()) != -1)
         {
             // Need to flush contents for the new stdout and stderr
             _flushall();
@@ -165,20 +165,12 @@ HRESULT PipeOutputManager::Stop()
     return S_OK;
 }
 
-bool PipeOutputManager::GetStdOutContent(STRA* straStdOutput)
+std::wstring PipeOutputManager::GetStdOutContent()
 {
-    bool fLogged = false;
-
-    // TODO consider returning the file contents rather than copying.
-    if (m_dwStdErrReadTotal > 0)
-    {
-        if (SUCCEEDED(straStdOutput->Copy(m_pzFileContents, m_dwStdErrReadTotal)))
-        {
-            fLogged = TRUE;
-        }
-    }
-
-    return fLogged;
+    std::wstring res;
+    res.resize(m_dwStdErrReadTotal);
+    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, m_pzFileContents, static_cast<int>(m_dwStdErrReadTotal), res.data(), m_dwStdErrReadTotal);
+    return res;
 }
 
 void

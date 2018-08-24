@@ -23,9 +23,9 @@ public:
         return S_OK;
     }
 
-    bool GetStdOutContent(STRA*)
+    std::wstring GetStdOutContent()
     {
-        return false;
+        return L"";
     }
 };
 
