@@ -49,6 +49,11 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
     {
         LOG_INFOF(L"Process path '%ls' is dotnet, treating application as portable", expandedProcessPath.c_str());
 
+        if (applicationArguments.empty())
+        {
+            throw StartupParametersResolutionException(L"Application arguments are empty.");
+        }
+
         if (dotnetExePath.empty())
         {
             dotnetExePath = GetAbsolutePathToDotnet(applicationPhysicalPath, expandedProcessPath);
@@ -111,7 +116,7 @@ HOSTFXR_UTILITY::GetHostFxrParameters(
                 hostFxrDllPath = GetAbsolutePathToHostFxr(dotnetExePath);
 
                 // For portable with launcher apps we need dotnet.exe to be argv[0] and .dll be argv[1]
-                arguments.push_back(executablePath);
+                arguments.push_back(dotnetExePath);
                 arguments.push_back(applicationDllPath);
             }
 
@@ -145,13 +150,13 @@ HOSTFXR_UTILITY::AppendArguments(
     bool expandDllPaths
 )
 {
-    // don't throw while trying to expand arguments
-    std::error_code ec;
-
     if (applicationArguments.empty())
     {
-        throw StartupParametersResolutionException(L"Application arguments are empty.");
+        return;
     }
+
+    // don't throw while trying to expand arguments
+    std::error_code ec;
 
     // Try to treat entire arguments section as a single path
     if (expandDllPaths)

@@ -17,7 +17,7 @@ TEST(ParseHostFxrArguments, BasicHostFxrArguments)
         L"invalid",  // physical path to application
         bstrArray); // args array.
 
-    EXPECT_EQ(3, bstrArray.size());
+    EXPECT_EQ(2, bstrArray.size());
     ASSERT_STREQ(L"exec", bstrArray[0].c_str());
     ASSERT_STREQ(L"test.dll", bstrArray[1].c_str());
 }
@@ -31,7 +31,7 @@ TEST(ParseHostFxrArguments, NoExecProvided)
         L"ignored",  // physical path to application
         bstrArray); // args array.
 
-    EXPECT_EQ(DWORD(2), bstrArray.size());
+    EXPECT_EQ(1, bstrArray.size());
     ASSERT_STREQ(L"test.dll", bstrArray[0].c_str());
 }
 
@@ -46,7 +46,7 @@ TEST(ParseHostFxrArguments, ConvertDllToAbsolutePath)
         bstrArray, // args array.
         true); // expandDllPaths
 
-    EXPECT_EQ(DWORD(3), bstrArray.size());
+    EXPECT_EQ(2, bstrArray.size());
     ASSERT_STREQ(L"exec", bstrArray[0].c_str());
     ASSERT_STREQ((system32 + L"\\ntdll.dll").c_str(), bstrArray[1].c_str());
 }

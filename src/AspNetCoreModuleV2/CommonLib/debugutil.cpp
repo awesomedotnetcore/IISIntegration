@@ -23,7 +23,7 @@ HRESULT
 PrintDebugHeader()
 {
     // Major, minor are stored in dwFileVersionMS field and patch, build in dwFileVersionLS field as pair of 32 bit numbers
-    DebugPrintf(ASPNETCORE_DEBUG_FLAG_INFO, "Initializing logs for %S. %S. %S.",
+    DebugPrintfW(ASPNETCORE_DEBUG_FLAG_INFO, L"Initializing logs for '%ls'. '%ls'. '%ls'.",
         GetModuleName().c_str(),
         GetProcessIdString().c_str(),
         GetVersionInfoString().c_str()
@@ -86,7 +86,7 @@ std::wstring
 GetModuleName()
 {
     WCHAR path[MAX_PATH];
-    LOG_LAST_ERROR_IF(GetModuleFileName(g_hModule, path, sizeof(path)));
+    LOG_LAST_ERROR_IF(!GetModuleFileName(g_hModule, path, sizeof(path)));
     return path;
 }
 
