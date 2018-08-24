@@ -334,7 +334,7 @@ Finished:
         EventLog::Error(
             ASPNETCORE_EVENT_LOAD_CLR_FALIURE,
             ASPNETCORE_EVENT_LOAD_CLR_FALIURE_MSG,
-            QueryApplicationPath().c_str(),
+            QueryApplicationId().c_str(),
             QueryApplicationPhysicalPath().c_str(),
             hr);
     }
@@ -514,7 +514,7 @@ IN_PROCESS_APPLICATION::LogErrorsOnMainExit(
             EventLog::Error(
                 ASPNETCORE_EVENT_INPROCESS_THREAD_EXIT_STDOUT,
                 ASPNETCORE_EVENT_INPROCESS_THREAD_EXIT_STDOUT_MSG,
-                QueryApplicationPath().c_str(),
+                QueryApplicationId().c_str(),
                 QueryApplicationPhysicalPath().c_str(),
                 hr,
                 struStdMsg.QueryStr());
@@ -525,7 +525,7 @@ IN_PROCESS_APPLICATION::LogErrorsOnMainExit(
         EventLog::Error(
             ASPNETCORE_EVENT_INPROCESS_THREAD_EXIT,
             ASPNETCORE_EVENT_INPROCESS_THREAD_EXIT_MSG,
-            QueryApplicationPath().c_str(),
+            QueryApplicationId().c_str(),
             QueryApplicationPhysicalPath().c_str(),
             hr);
     }

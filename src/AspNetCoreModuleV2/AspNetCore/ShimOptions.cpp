@@ -12,7 +12,7 @@ ShimOptions::ShimOptions(const ConfigurationSource &configurationSource) :
         m_hostingModel(HOSTING_UNKNOWN),
         m_fStdoutLogEnabled(false)
 {
-    auto const section = configurationSource.GetSection(CS_ASPNETCORE_SECTION);
+    auto const section = configurationSource.GetRequiredSection(CS_ASPNETCORE_SECTION);
     auto hostingModel = section->GetString(CS_ASPNETCORE_HOSTING_MODEL).value_or(L"");
 
     if (hostingModel.empty() || equals_ignore_case(hostingModel, CS_ASPNETCORE_HOSTING_MODEL_OUTOFPROCESS))
