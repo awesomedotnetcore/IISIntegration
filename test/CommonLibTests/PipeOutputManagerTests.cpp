@@ -31,11 +31,23 @@ namespace PipeOutputManagerTests
 
         ASSERT_EQ(S_OK, pManager->Start());
         fwprintf(stdout, expected);
-
         ASSERT_EQ(S_OK, pManager->Stop());
 
         auto output = pManager->GetStdOutContent();
         ASSERT_STREQ(output.c_str(), expected);
+        delete pManager;
+    }
+
+    TEST(PipeManagerOutputTest, StdOutMultiToWide)
+    {
+        PipeOutputManager* pManager = new PipeOutputManager(true);
+
+        ASSERT_EQ(S_OK, pManager->Start());
+        fprintf(stdout, "test");
+        ASSERT_EQ(S_OK, pManager->Stop());
+
+        auto output = pManager->GetStdOutContent();
+        ASSERT_STREQ(output.c_str(), L"test");
         delete pManager;
     }
 
@@ -47,21 +59,6 @@ namespace PipeOutputManagerTests
 
         ASSERT_EQ(S_OK, pManager->Start());
         fwprintf(stderr, expected);
-        ASSERT_EQ(S_OK, pManager->Stop());
-
-        auto output = pManager->GetStdOutContent();
-        ASSERT_STREQ(output.c_str(), expected);
-        delete pManager;
-    }
-
-    TEST(PipeManagerOutputTest, DISABLED_UnicodeNarrowString)
-    {
-        PCWSTR expected = L"彡⾔";
-
-        PipeOutputManager* pManager = new PipeOutputManager();
-
-        ASSERT_EQ(S_OK, pManager->Start());
-        fwprintf(stdout, expected);
         ASSERT_EQ(S_OK, pManager->Stop());
 
         auto output = pManager->GetStdOutContent();

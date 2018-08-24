@@ -86,46 +86,6 @@ namespace FileOutManagerOutputTests
         }
     }
 
-    TEST(FileOutManagerOutputTest, DISABLED_UnicodeCharacters)
-    {
-        PCWSTR expected = L"彡⾔";
-
-        auto tempDirectory = TempDirectory();
-
-        FileOutputManager* pManager = new FileOutputManager(L"", tempDirectory.path().c_str());
-        {
-            FileManagerWrapper wrapper(pManager);
-
-            fwprintf(stdout, expected);
-            pManager->Stop();
-
-            auto output = pManager->GetStdOutContent();
-            ASSERT_FALSE(output.empty());
-
-            ASSERT_STREQ(output.c_str(), expected);
-        }
-    }
-
-    TEST(FileOutManagerOutputTest, DISABLED_UnicodeCharactersWithWideCharacter)
-    {
-        PCWSTR expected = L"彡⾔";
-
-        auto tempDirectory = TempDirectory();
-
-        FileOutputManager* pManager = new FileOutputManager(L"", tempDirectory.path().c_str());
-        {
-            FileManagerWrapper wrapper(pManager);
-
-            fwprintf(stdout, expected);
-            pManager->Stop();
-
-            auto output = pManager->GetStdOutContent();
-            ASSERT_FALSE(output.empty());
-
-            ASSERT_STREQ(output.c_str(), L"彡⾔");
-        }
-    }
-
     TEST(FileOutManagerOutputTest, StdErr)
     {
         PCWSTR expected = L"test";
