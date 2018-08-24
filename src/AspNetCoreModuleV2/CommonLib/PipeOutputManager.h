@@ -32,13 +32,14 @@ private:
 
     HANDLE                          m_hErrReadPipe;
     HANDLE                          m_hErrWritePipe;
-    STRU                            m_struLogFilePath;
+    STRU                            m_logFilePath;
     HANDLE                          m_hErrThread;
-    CHAR                            m_pzFileContents[MAX_PIPE_READ_SIZE] = { 0 };
-    DWORD                           m_dwStdErrReadTotal;
-    SRWLOCK                         m_srwLock {};
+    CHAR                            m_pipeContents[MAX_PIPE_READ_SIZE] = { 0 };
+    DWORD                           m_numBytesReadTotal;
+    SRWLOCK                         m_srwLock;
     BOOL                            m_disposed;
-    BOOL                            m_fEnableNativeRedirection;
+    BOOL                            m_enableNativeRedirection;
     std::unique_ptr<StdWrapper>     stdoutWrapper;
     std::unique_ptr<StdWrapper>     stderrWrapper;
+    std::wstring                    m_stdOutContent;
 };

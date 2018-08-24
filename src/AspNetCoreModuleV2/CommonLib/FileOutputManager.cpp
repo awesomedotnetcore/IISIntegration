@@ -21,9 +21,9 @@ FileOutputManager::FileOutputManager(PCWSTR pwzStdOutLogFileName, PCWSTR pwzAppl
     m_disposed(false),
     stdoutWrapper(nullptr),
     stderrWrapper(nullptr),
-    m_fEnableNativeRedirection(fEnableNativeLogging),
-    m_wsApplicationPath(pwzApplicationPath),
-    m_wsStdOutLogFileName(pwzStdOutLogFileName)
+    m_enableNativeRedirection(fEnableNativeLogging),
+    m_applicationPath(pwzApplicationPath),
+    m_stdOutLogFileName(pwzStdOutLogFileName)
 {
     InitializeSRWLock(&m_srwLock);
 }
@@ -44,7 +44,7 @@ FileOutputManager::Start()
     FILETIME dummyFileTime;
 
     // Concatenate the log file name and application path
-    auto logPath = m_wsApplicationPath / m_wsStdOutLogFileName;
+    auto logPath = m_applicationPath / m_stdOutLogFileName;
     create_directories(logPath.parent_path());
 
     RETURN_LAST_ERROR_IF(!GetProcessTimes(
@@ -55,7 +55,7 @@ FileOutputManager::Start()
         &dummyFileTime));
     RETURN_LAST_ERROR_IF(!FileTimeToSystemTime(&processCreationTime, &systemTime));
 
-    m_struLogFilePath = format(L"%s_%d%02d%02d%02d%02d%02d_%d_%s.log",
+    m_logFilePath = format(L"%s_%d%02d%02d%02d%02d%02d_%d_%s.log",
         logPath.c_str(),
         systemTime.wYear,
         systemTime.wMonth,
@@ -71,7 +71,7 @@ FileOutputManager::Start()
     saAttr.lpSecurityDescriptor = NULL;
 
     // Create the file with both READ and WRITE.
-    m_hLogFileHandle = CreateFileW(m_struLogFilePath.c_str(),
+    m_hLogFileHandle = CreateFileW(m_logFilePath.c_str(),
         FILE_READ_DATA | FILE_WRITE_DATA,
         FILE_SHARE_READ,
         &saAttr,
@@ -81,8 +81,8 @@ FileOutputManager::Start()
 
     RETURN_LAST_ERROR_IF(m_hLogFileHandle == INVALID_HANDLE_VALUE);
 
-    stdoutWrapper = std::make_unique<StdWrapper>(stdout, STD_OUTPUT_HANDLE, m_hLogFileHandle, m_fEnableNativeRedirection);
-    stderrWrapper = std::make_unique<StdWrapper>(stderr, STD_ERROR_HANDLE, m_hLogFileHandle, m_fEnableNativeRedirection);
+    stdoutWrapper = std::make_unique<StdWrapper>(stdout, STD_OUTPUT_HANDLE, m_hLogFileHandle, m_enableNativeRedirection);
+    stderrWrapper = std::make_unique<StdWrapper>(stderr, STD_ERROR_HANDLE, m_hLogFileHandle, m_enableNativeRedirection);
 
     stdoutWrapper->StartRedirection();
     stderrWrapper->StartRedirection();
@@ -94,6 +94,8 @@ FileOutputManager::Start()
 HRESULT
 FileOutputManager::Stop()
 {
+    CHAR            pzFileContents[MAX_FILE_READ_SIZE] = { 0 };
+    DWORD           dwNumBytesRead;
     LARGE_INTEGER   li = { 0 };
     DWORD           dwFilePointer = 0;
     HANDLE   handle = NULL;
@@ -131,14 +133,14 @@ FileOutputManager::Stop()
     }
 
     // delete empty log file
-    handle = FindFirstFile(m_struLogFilePath.c_str(), &fileData);
+    handle = FindFirstFile(m_logFilePath.c_str(), &fileData);
     if (handle != INVALID_HANDLE_VALUE &&
         handle != NULL &&
         fileData.nFileSizeHigh == 0 &&
         fileData.nFileSizeLow == 0) // skip check of nFileSizeHigh
     {
         FindClose(handle);
-        LOG_LAST_ERROR_IF(!DeleteFile(m_struLogFilePath.c_str()));
+        LOG_LAST_ERROR_IF(!DeleteFile(m_logFilePath.c_str()));
     }
 
     // Read the first 30Kb from the file and store it in a buffer.
@@ -155,6 +157,8 @@ FileOutputManager::Stop()
     RETURN_LAST_ERROR_IF(dwFilePointer == INVALID_SET_FILE_POINTER);
 
     RETURN_LAST_ERROR_IF(!ReadFile(m_hLogFileHandle, pzFileContents, MAX_FILE_READ_SIZE, &dwNumBytesRead, NULL));
+    m_stdOutContent.resize(dwNumBytesRead);
+    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, pzFileContents, static_cast<int>(dwNumBytesRead), m_stdOutContent.data(), dwNumBytesRead);
 
     auto content = GetStdOutContent();
     if (!content.empty())
@@ -172,8 +176,5 @@ FileOutputManager::Stop()
 
 std::wstring FileOutputManager::GetStdOutContent()
 {
-    std::wstring output;
-    output.resize(dwNumBytesRead);
-    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, pzFileContents, static_cast<int>(dwNumBytesRead), output.data(), static_cast<int>(dwNumBytesRead));
-    return output;
+    return m_stdOutContent;
 }

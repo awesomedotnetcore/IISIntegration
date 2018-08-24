@@ -25,16 +25,13 @@ public:
 
 private:
     HandleWrapper<InvalidHandleTraits> m_hLogFileHandle;
-    std::wstring m_wsStdOutLogFileName;
-    std::filesystem::path m_wsApplicationPath;
-    std::filesystem::path m_struLogFilePath;
-    std::string m_straFileContent;
+    std::wstring m_stdOutLogFileName;
+    std::filesystem::path m_applicationPath;
+    std::filesystem::path m_logFilePath;
+    std::wstring m_stdOutContent;
     bool m_disposed;
-    bool m_fEnableNativeRedirection;
+    bool m_enableNativeRedirection;
     SRWLOCK m_srwLock{};
-    std::unique_ptr<StdWrapper>    stdoutWrapper;
-    std::unique_ptr<StdWrapper>    stderrWrapper;
-    CHAR            pzFileContents[MAX_FILE_READ_SIZE] = { 0 };
-    DWORD           dwNumBytesRead;
-
+    std::unique_ptr<StdWrapper> stdoutWrapper;
+    std::unique_ptr<StdWrapper> stderrWrapper;
 };

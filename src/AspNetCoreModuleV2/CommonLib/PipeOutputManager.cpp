@@ -20,9 +20,9 @@ PipeOutputManager::PipeOutputManager(bool fEnableNativeLogging) :
     m_hErrReadPipe(INVALID_HANDLE_VALUE),
     m_hErrWritePipe(INVALID_HANDLE_VALUE),
     m_hErrThread(nullptr),
-    m_dwStdErrReadTotal(0),
+    m_numBytesReadTotal(0),
     m_disposed(FALSE),
-    m_fEnableNativeRedirection(fEnableNativeLogging),
+    m_enableNativeRedirection(fEnableNativeLogging),
     stdoutWrapper(nullptr),
     stderrWrapper(nullptr)
 {
@@ -48,8 +48,8 @@ HRESULT PipeOutputManager::Start()
     m_hErrReadPipe = hStdErrReadPipe;
     m_hErrWritePipe = hStdErrWritePipe;
 
-    stdoutWrapper = std::make_unique<StdWrapper>(stdout, STD_OUTPUT_HANDLE, hStdErrWritePipe, m_fEnableNativeRedirection);
-    stderrWrapper = std::make_unique<StdWrapper>(stderr, STD_ERROR_HANDLE, hStdErrWritePipe, m_fEnableNativeRedirection);
+    stdoutWrapper = std::make_unique<StdWrapper>(stdout, STD_OUTPUT_HANDLE, hStdErrWritePipe, m_enableNativeRedirection);
+    stderrWrapper = std::make_unique<StdWrapper>(stderr, STD_ERROR_HANDLE, hStdErrWritePipe, m_enableNativeRedirection);
 
     LOG_IF_FAILED(stdoutWrapper->StartRedirection());
     LOG_IF_FAILED(stderrWrapper->StartRedirection());
@@ -151,11 +151,13 @@ HRESULT PipeOutputManager::Stop()
 
     // If we captured any output, relog it to the original stdout
     // Useful for the IIS Express scenario as it is running with stdout and stderr
-    auto content = GetStdOutContent();
-    if (!content.empty())
+    m_stdOutContent.resize(m_numBytesReadTotal);
+    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, m_pipeContents, static_cast<int>(m_numBytesReadTotal), m_stdOutContent.data(), m_numBytesReadTotal);
+
+    if (!m_stdOutContent.empty())
     {
         // printf will fail in in full IIS
-        if (wprintf(content.c_str()) != -1)
+        if (wprintf(m_stdOutContent.c_str()) != -1)
         {
             // Need to flush contents for the new stdout and stderr
             _flushall();
@@ -167,10 +169,7 @@ HRESULT PipeOutputManager::Stop()
 
 std::wstring PipeOutputManager::GetStdOutContent()
 {
-    std::wstring res;
-    res.resize(m_dwStdErrReadTotal);
-    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, m_pzFileContents, static_cast<int>(m_dwStdErrReadTotal), res.data(), m_dwStdErrReadTotal);
-    return res;
+    return m_stdOutContent;
 }
 
 void
@@ -192,13 +191,13 @@ PipeOutputManager::ReadStdErrHandleInternal()
     {
         // Fill a maximum of MAX_PIPE_READ_SIZE into a buffer.
         if (ReadFile(m_hErrReadPipe,
-            &m_pzFileContents[m_dwStdErrReadTotal],
-            MAX_PIPE_READ_SIZE - m_dwStdErrReadTotal,
+            &m_pipeContents[m_numBytesReadTotal],
+            MAX_PIPE_READ_SIZE - m_numBytesReadTotal,
             &dwNumBytesRead,
             nullptr))
         {
-            m_dwStdErrReadTotal += dwNumBytesRead;
-            if (m_dwStdErrReadTotal >= MAX_PIPE_READ_SIZE)
+            m_numBytesReadTotal += dwNumBytesRead;
+            if (m_numBytesReadTotal >= MAX_PIPE_READ_SIZE)
             {
                 break;
             }
