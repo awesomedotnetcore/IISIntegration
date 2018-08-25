@@ -98,14 +98,10 @@ namespace IIS.FunctionalTests.Inprocess
 
             StopServer();
 
-            var filesInDirectory = Directory.GetFiles(_logFolderPath);
-            Assert.Equal(2, filesInDirectory.Length);
-            foreach (var file in filesInDirectory)
-            {
-                var contents = File.ReadAllText(file);
-                EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "Invoked hostfxr");
-                Assert.Contains("Invoked hostfxr", contents);
-            }
+            var fileInDirectory = Directory.GetFiles(_logFolderPath).Single();
+            var contents = File.ReadAllText(fileInDirectory);
+            EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "Invoked hostfxr");
+            Assert.Contains("Invoked hostfxr", contents);
         }
 
         [ConditionalTheory]

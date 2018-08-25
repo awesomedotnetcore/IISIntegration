@@ -47,6 +47,10 @@ FileOutputManager::Start()
     SYSTEMTIME systemTime;
     SECURITY_ATTRIBUTES saAttr = { 0 };
     STRU struPath;
+    FILETIME processCreationTime;
+    FILETIME dummy1;
+    FILETIME dummy2;
+    FILETIME dummy3;
 
     // Concatenate the log file name and application path
     RETURN_IF_FAILED(FILE_UTILITY::ConvertPathToFullPath(
@@ -56,18 +60,13 @@ FileOutputManager::Start()
 
     RETURN_IF_FAILED(FILE_UTILITY::EnsureDirectoryPathExist(struPath.QueryStr()));
 
-    // Get the module name and add it to the log file name
-    // as two log files will be created, one from the shim
-    // and one from the request handler.
-    WCHAR path[MAX_PATH];
-    RETURN_LAST_ERROR_IF(!GetModuleFileName(g_hModule, path, sizeof(path)));
-    std::filesystem::path fsPath(path);
 
     // TODO fix string as it is incorrect
-    GetSystemTime(&systemTime);
+    RETURN_LAST_ERROR_IF(!GetProcessTimes(GetCurrentProcess(), &processCreationTime, &dummy1, &dummy2, &dummy3));
+    RETURN_LAST_ERROR_IF(!FileTimeToSystemTime(&processCreationTime, &systemTime));
 
     RETURN_IF_FAILED(
-        m_struLogFilePath.SafeSnwprintf(L"%s_%d%02d%02d%02d%02d%02d_%d_%s.log",
+        m_struLogFilePath.SafeSnwprintf(L"%s_%d%02d%02d%02d%02d%02d_%d.log",
             struPath.QueryStr(),
             systemTime.wYear,
             systemTime.wMonth,
@@ -75,8 +74,7 @@ FileOutputManager::Start()
             systemTime.wHour,
             systemTime.wMinute,
             systemTime.wSecond,
-            GetCurrentProcessId(),
-            fsPath.filename().stem().c_str()));
+            GetCurrentProcessId()));
 
     saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
     saAttr.bInheritHandle = TRUE;
