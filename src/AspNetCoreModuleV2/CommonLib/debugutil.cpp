@@ -23,7 +23,7 @@ HRESULT
 PrintDebugHeader()
 {
     // Major, minor are stored in dwFileVersionMS field and patch, build in dwFileVersionLS field as pair of 32 bit numbers
-    DebugPrintfW(ASPNETCORE_DEBUG_FLAG_INFO, L"Initializing logs for '%ls'. '%ls'. '%ls'.",
+    DebugPrintfW(ASPNETCORE_DEBUG_FLAG_INFO, L"Initializing logs for '%ls'. %ls. %ls.",
         GetModuleName().c_str(),
         GetProcessIdString().c_str(),
         GetVersionInfoString().c_str()

@@ -168,7 +168,7 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
 
         [ConditionalTheory]
         [MemberData(nameof(InvalidConfigTransformationsScenarios))]
-        public async Task StartsWithWebConfigVariationsPortable(string scenario)
+        public async Task ReportsWebConfigAuthoringErrors(string scenario)
         {
             var (expectedError, action) = InvalidConfigTransformations[scenario];
             var iisDeploymentParameters = _fixture.GetBaseDeploymentParameters(publish: true);
@@ -201,6 +201,7 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
                 ));
             return dictionary;
         }
+
         private static Dictionary<string, Func<IISDeploymentParameters, string>> PortableConfigTransformations = InitPortableWebConfigTransformations();
         public static IEnumerable<object[]> PortableConfigTransformationsScenarios => PortableConfigTransformations.ToTheoryData();
 

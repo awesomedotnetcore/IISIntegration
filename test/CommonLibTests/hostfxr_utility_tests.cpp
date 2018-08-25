@@ -54,10 +54,15 @@ TEST(ParseHostFxrArguments, ConvertDllToAbsolutePath)
 TEST(ParseHostFxrArguments, ProvideNoArgs_InvalidArgs)
 {
     std::vector<std::wstring> bstrArray;
+    std::filesystem::path struHostFxrDllLocation;
+    std::filesystem::path struExeLocation;
 
-    ASSERT_THROW(HOSTFXR_UTILITY::AppendArguments(
-        L"", // args
-        L"ignored",  // physical path to application
+    EXPECT_THROW(HOSTFXR_UTILITY::GetHostFxrParameters(
+        L"dotnet", // processPath
+        L"some\\path",  // application physical path, ignored.
+        L"",  //arguments
+        struHostFxrDllLocation,
+        struExeLocation,
         bstrArray), // args array.
         HOSTFXR_UTILITY::StartupParametersResolutionException);
 }
