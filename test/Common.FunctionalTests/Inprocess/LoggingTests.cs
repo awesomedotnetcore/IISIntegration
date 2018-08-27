@@ -44,7 +44,7 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
-            var logFileName = GetLogFile(deploymentResult);
+            var logFileName = GetLogName(deploymentResult);
             
             await Helpers.AssertStarts(deploymentResult, path);
 
@@ -80,7 +80,7 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
-            var logFileName = GetLogFile(deploymentResult);
+            var logFileName = GetLogName(deploymentResult);
             await Helpers.AssertStarts(deploymentResult, "CheckLogFile");
 
             StopServer();
