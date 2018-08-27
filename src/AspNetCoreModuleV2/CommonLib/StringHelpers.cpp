@@ -20,7 +20,7 @@ bool equals_ignore_case(const std::wstring& s1, const std::wstring& s2)
     return CSTR_EQUAL == CompareStringOrdinal(s1.c_str(), static_cast<int>(s1.length()), s2.c_str(), static_cast<int>(s2.length()), true);
 }
 
-void to_wide_string(const std::string &source)
+std::wstring to_wide_string(const std::string &source)
 {
     std::wstring destination;
 

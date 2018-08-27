@@ -152,7 +152,7 @@ HRESULT PipeOutputManager::Stop()
 
     // If we captured any output, relog it to the original stdout
     // Useful for the IIS Express scenario as it is running with stdout and stderr
-    to_wide_string(std::string(m_pipeContents, m_numBytesReadTotal), m_stdOutContent);
+    m_stdOutContent = to_wide_string(std::string(m_pipeContents, m_numBytesReadTotal));
 
     if (!m_stdOutContent.empty())
     {

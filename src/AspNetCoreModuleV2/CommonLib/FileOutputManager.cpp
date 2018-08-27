@@ -158,7 +158,7 @@ FileOutputManager::Stop()
 
     THROW_LAST_ERROR_IF(!ReadFile(m_hLogFileHandle, pzFileContents, MAX_FILE_READ_SIZE, &dwNumBytesRead, NULL));
 
-    to_wide_string(std::string(pzFileContents, dwNumBytesRead), m_stdOutContent);
+    m_stdOutContent = to_wide_string(std::string(pzFileContents, dwNumBytesRead));
 
     auto content = GetStdOutContent();
     if (!content.empty())

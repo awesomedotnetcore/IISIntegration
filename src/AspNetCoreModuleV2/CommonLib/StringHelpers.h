@@ -12,7 +12,7 @@ bool ends_with(const std::wstring &source, const std::wstring &suffix, bool igno
 bool equals_ignore_case(const std::wstring& s1, const std::wstring& s2);
 
 [[nodiscard]]
-HRESULT to_wide_string(const std::string &source, std::wstring &destination);
+std::wstring to_wide_string(const std::string &source);
 
 template<typename ... Args>
 [[nodiscard]]
