@@ -44,13 +44,12 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
-            var logFileName = GetExpectedLogName(deploymentResult);
             
             await Helpers.AssertStarts(deploymentResult, path);
 
             StopServer();
 
-            var contents = File.ReadAllText(logFileName);
+            var contents = File.ReadAllText(Helpers.GetExpectedLogName(deploymentResult, _logFolderPath));
 
             Assert.NotNull(contents);
             Assert.Contains("TEST MESSAGE", contents);
@@ -79,12 +78,11 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
-            var logFileName = GetExpectedLogName(deploymentResult);
             await Helpers.AssertStarts(deploymentResult, "CheckLogFile");
 
             StopServer();
 
-            Assert.Equal(logFileName, GetActualLogName());
+            Assert.Single(Directory.GetFiles(_logFolderPath), Helpers.GetExpectedLogName(deploymentResult, _logFolderPath));
         }
 
         [ConditionalFact]
@@ -213,20 +211,6 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
                 Assert.Contains("Description: IIS ASP.NET Core Module V2. Commit:", logContents);
                 Assert.Contains("Description: IIS ASP.NET Core Module V2 Request Handler. Commit:", logContents);
             }
-        }
-
-        private string GetExpectedLogName(IISDeploymentResult deploymentResult)
-        {
-            var starttime = deploymentResult.HostProcess.StartTime.ToUniversalTime();
-            return Path.Combine(_logFolderPath, $"std_{starttime.Year}{starttime.Month.ToString("D2")}" +
-                $"{starttime.Day.ToString("D2")}{starttime.Hour.ToString("D2")}" +
-                $"{starttime.Minute.ToString("D2")}{starttime.Second.ToString("D2")}_" +
-                $"{deploymentResult.HostProcess.Id}.log");
-        }
-
-        private string GetActualLogName()
-        {
-            return Directory.GetFiles(_logFolderPath).Single();
         }
     }
 }

@@ -142,5 +142,18 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
         {
             return dictionary.Keys.Select(k => new[] { k });
         }
+        public static string GetExpectedLogName(IISDeploymentResult deploymentResult, string logFolderPath)
+        {
+            var startTime = deploymentResult.HostProcess.StartTime.ToUniversalTime();
+            return Path.Combine(logFolderPath, $"std_{startTime.Year}{startTime.Month.ToString("D2")}" +
+                $"{startTime.Day.ToString("D2")}{startTime.Hour.ToString("D2")}" +
+                $"{startTime.Minute.ToString("D2")}{startTime.Second.ToString("D2")}_" +
+                $"{deploymentResult.HostProcess.Id}.log");
+        }
+
+        public static string GetActualLogName(string logFolderPath)
+        {
+            return Directory.GetFiles(logFolderPath).Single();
+        }
     }
 }

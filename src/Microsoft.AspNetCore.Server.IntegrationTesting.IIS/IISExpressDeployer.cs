@@ -249,6 +249,7 @@ namespace Microsoft.AspNetCore.Server.IntegrationTesting.IIS
                     else
                     {
                         _hostProcess = process;
+                        var _ = _hostProcess.StartTime;
                         Logger.LogInformation("Started iisexpress successfully. Process Id : {processId}, Port: {port}", _hostProcess.Id, port);
                         return (url: url, hostExitToken: hostExitTokenSource.Token);
                     }
