@@ -44,14 +44,13 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
-            var logFileName = GetLogName(deploymentResult);
+            var logFileName = GetExpectedLogName(deploymentResult);
             
             await Helpers.AssertStarts(deploymentResult, path);
 
             StopServer();
 
-            var fileInDirectory = Directory.GetFiles(logFileName).Single();
-            var contents = File.ReadAllText(fileInDirectory);
+            var contents = File.ReadAllText(logFileName);
 
             Assert.NotNull(contents);
             Assert.Contains("TEST MESSAGE", contents);
@@ -73,19 +72,19 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
         }
 
         [ConditionalFact]
-        public async Task OnlyOneFileCreated()
+        public async Task OnlyOneFileCreatedWithProcessStartTime()
         {
             var deploymentParameters = _fixture.GetBaseDeploymentParameters(publish: true);
 
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
-            var logFileName = GetLogName(deploymentResult);
+            var logFileName = GetExpectedLogName(deploymentResult);
             await Helpers.AssertStarts(deploymentResult, "CheckLogFile");
 
             StopServer();
 
-            Assert.Single(Directory.GetFiles(logFileName));
+            Assert.Equal(logFileName, GetActualLogName());
         }
 
         [ConditionalFact]
@@ -216,13 +215,18 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             }
         }
 
-        private string GetLogName(IISDeploymentResult deploymentResult)
+        private string GetExpectedLogName(IISDeploymentResult deploymentResult)
         {
             var starttime = deploymentResult.HostProcess.StartTime.ToUniversalTime();
-            return Path.Combine(_logFolderPath, $"std_{starttime.Year}{starttime.Month.ToString().PadLeft(2, '0')}" +
-                $"{starttime.Day.ToString().PadLeft(2, '0')}{starttime.Hour.ToString().PadLeft(2, '0')}" +
-                $"{starttime.Minute.ToString().PadLeft(2, '0')}{starttime.Second.ToString().PadLeft(2, '0')}_" +
+            return Path.Combine(_logFolderPath, $"std_{starttime.Year}{starttime.Month.ToString("D2")}" +
+                $"{starttime.Day.ToString("D2")}{starttime.Hour.ToString("D2")}" +
+                $"{starttime.Minute.ToString("D2")}{starttime.Second.ToString("D2")}_" +
                 $"{deploymentResult.HostProcess.Id}.log");
+        }
+
+        private string GetActualLogName()
+        {
+            return Directory.GetFiles(_logFolderPath).Single();
         }
     }
 }
