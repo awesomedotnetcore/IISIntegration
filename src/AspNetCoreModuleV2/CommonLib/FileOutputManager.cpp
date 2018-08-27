@@ -48,9 +48,7 @@ FileOutputManager::Start()
     SECURITY_ATTRIBUTES saAttr = { 0 };
     STRU struPath;
     FILETIME processCreationTime;
-    FILETIME dummy1;
-    FILETIME dummy2;
-    FILETIME dummy3;
+    FILETIME dummyFileTime;
 
     // Concatenate the log file name and application path
     RETURN_IF_FAILED(FILE_UTILITY::ConvertPathToFullPath(
@@ -62,7 +60,12 @@ FileOutputManager::Start()
 
 
     // TODO fix string as it is incorrect
-    RETURN_LAST_ERROR_IF(!GetProcessTimes(GetCurrentProcess(), &processCreationTime, &dummy1, &dummy2, &dummy3));
+    RETURN_LAST_ERROR_IF(!GetProcessTimes(
+        GetCurrentProcess(), 
+        &processCreationTime, 
+        &dummyFileTime, 
+        &dummyFileTime, 
+        &dummyFileTime));
     RETURN_LAST_ERROR_IF(!FileTimeToSystemTime(&processCreationTime, &systemTime));
 
     RETURN_IF_FAILED(
