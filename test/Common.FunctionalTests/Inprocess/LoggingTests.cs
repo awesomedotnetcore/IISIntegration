@@ -44,12 +44,13 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
-
+            var logFileName = GetLogFile(deploymentResult);
+            
             await Helpers.AssertStarts(deploymentResult, path);
 
             StopServer();
 
-            var fileInDirectory = Directory.GetFiles(_logFolderPath).Single();
+            var fileInDirectory = Directory.GetFiles(logFileName).Single();
             var contents = File.ReadAllText(fileInDirectory);
 
             Assert.NotNull(contents);
@@ -79,14 +80,12 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
-
+            var logFileName = GetLogFile(deploymentResult);
             await Helpers.AssertStarts(deploymentResult, "CheckLogFile");
 
             StopServer();
 
-            var file = Directory.GetFiles(_logFolderPath).Single("");
-
-            Assert.Equal();
+            Assert.Single(Directory.GetFiles(logFileName));
         }
 
         [ConditionalFact]
