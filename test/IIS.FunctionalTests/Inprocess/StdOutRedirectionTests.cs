@@ -73,8 +73,7 @@ namespace IIS.FunctionalTests.Inprocess
 
             StopServer();
 
-            var fileInDirectory = Directory.GetFiles(_logFolderPath).Single();
-            var contents = File.ReadAllText(fileInDirectory);
+            var contents = File.ReadAllText(Helpers.GetExpectedLogName(deploymentResult, _logFolderPath));
             var expectedString = "The specified framework 'Microsoft.NETCore.App', version '2.9.9' was not found.";
             EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, expectedString);
             Assert.Contains(expectedString, contents);
