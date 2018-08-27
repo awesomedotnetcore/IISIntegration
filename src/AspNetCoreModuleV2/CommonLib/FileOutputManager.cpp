@@ -53,9 +53,10 @@ FileOutputManager::Start()
         &dummyFileTime, 
         &dummyFileTime, 
         &dummyFileTime));
+
     RETURN_LAST_ERROR_IF(!FileTimeToSystemTime(&processCreationTime, &systemTime));
 
-    m_logFilePath = format(L"%s_%d%02d%02d%02d%02d%02d_%d_%s.log",
+    m_logFilePath = format(L"%s_%d%02d%02d%02d%02d%02d_%d.log",
         logPath.c_str(),
         systemTime.wYear,
         systemTime.wMonth,
@@ -63,8 +64,7 @@ FileOutputManager::Start()
         systemTime.wHour,
         systemTime.wMinute,
         systemTime.wSecond,
-        GetCurrentProcessId(),
-        fsPath.filename().stem().c_str());
+        GetCurrentProcessId());
 
     saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
     saAttr.bInheritHandle = TRUE;
@@ -79,7 +79,7 @@ FileOutputManager::Start()
         FILE_ATTRIBUTE_NORMAL,
         nullptr);
 
-    RETURN_LAST_ERROR_IF(m_hLogFileHandle == INVALID_HANDLE_VALUE);
+    THROW_LAST_ERROR_IF(m_hLogFileHandle == INVALID_HANDLE_VALUE);
 
     stdoutWrapper = std::make_unique<StdWrapper>(stdout, STD_OUTPUT_HANDLE, m_hLogFileHandle, m_enableNativeRedirection);
     stderrWrapper = std::make_unique<StdWrapper>(stderr, STD_ERROR_HANDLE, m_hLogFileHandle, m_enableNativeRedirection);
@@ -124,12 +124,12 @@ FileOutputManager::Stop()
 
     if (stdoutWrapper != nullptr)
     {
-        RETURN_IF_FAILED(stdoutWrapper->StopRedirection());
+        THROW_IF_FAILED(stdoutWrapper->StopRedirection());
     }
 
     if (stderrWrapper != nullptr)
     {
-        RETURN_IF_FAILED(stderrWrapper->StopRedirection());
+        THROW_IF_FAILED(stderrWrapper->StopRedirection());
     }
 
     // delete empty log file
@@ -145,20 +145,20 @@ FileOutputManager::Stop()
 
     // Read the first 30Kb from the file and store it in a buffer.
     // By doing this, we can close the handle to the file and be done with it.
-    RETURN_LAST_ERROR_IF(!GetFileSizeEx(m_hLogFileHandle, &li));
+    THROW_LAST_ERROR_IF(!GetFileSizeEx(m_hLogFileHandle, &li));
 
     if (li.LowPart == 0 || li.HighPart > 0)
     {
-        RETURN_IF_FAILED(HRESULT_FROM_WIN32(ERROR_FILE_INVALID));
+        THROW_IF_FAILED(HRESULT_FROM_WIN32(ERROR_FILE_INVALID));
     }
 
     dwFilePointer = SetFilePointer(m_hLogFileHandle, 0, NULL, FILE_BEGIN);
 
-    RETURN_LAST_ERROR_IF(dwFilePointer == INVALID_SET_FILE_POINTER);
+    THROW_LAST_ERROR_IF(dwFilePointer == INVALID_SET_FILE_POINTER);
 
-    RETURN_LAST_ERROR_IF(!ReadFile(m_hLogFileHandle, pzFileContents, MAX_FILE_READ_SIZE, &dwNumBytesRead, NULL));
+    THROW_LAST_ERROR_IF(!ReadFile(m_hLogFileHandle, pzFileContents, MAX_FILE_READ_SIZE, &dwNumBytesRead, NULL));
 
-    RETURN_IF_FAILED(to_wide_string(std::string(pzFileContents, dwNumBytesRead), m_stdOutContent));
+    to_wide_string(std::string(pzFileContents, dwNumBytesRead), m_stdOutContent);
 
     auto content = GetStdOutContent();
     if (!content.empty())

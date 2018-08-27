@@ -44,7 +44,7 @@ HRESULT PipeOutputManager::Start()
     HANDLE                  hStdErrReadPipe;
     HANDLE                  hStdErrWritePipe;
 
-    RETURN_LAST_ERROR_IF(!CreatePipe(&hStdErrReadPipe, &hStdErrWritePipe, &saAttr, 0 /*nSize*/));
+    THROW_LAST_ERROR_IF(!CreatePipe(&hStdErrReadPipe, &hStdErrWritePipe, &saAttr, 0 /*nSize*/));
 
     m_hErrReadPipe = hStdErrReadPipe;
     m_hErrWritePipe = hStdErrWritePipe;
@@ -64,7 +64,7 @@ HRESULT PipeOutputManager::Start()
         0,          // default creation flags
         nullptr);      // receive thread identifier
 
-    RETURN_LAST_ERROR_IF_NULL(m_hErrThread);
+    THROW_LAST_ERROR_IF_NULL(m_hErrThread);
 
     return S_OK;
 }
@@ -97,7 +97,7 @@ HRESULT PipeOutputManager::Stop()
     if (m_hErrWritePipe != INVALID_HANDLE_VALUE)
     {
         // Flush the pipe writer before closing to capture all output
-        RETURN_LAST_ERROR_IF(!FlushFileBuffers(m_hErrWritePipe));
+        THROW_LAST_ERROR_IF(!FlushFileBuffers(m_hErrWritePipe));
         CloseHandle(m_hErrWritePipe);
         m_hErrWritePipe = INVALID_HANDLE_VALUE;
     }
@@ -152,7 +152,7 @@ HRESULT PipeOutputManager::Stop()
 
     // If we captured any output, relog it to the original stdout
     // Useful for the IIS Express scenario as it is running with stdout and stderr
-    RETURN_IF_FAILED(to_wide_string(std::string(m_pipeContents, m_numBytesReadTotal), m_stdOutContent));
+    to_wide_string(std::string(m_pipeContents, m_numBytesReadTotal), m_stdOutContent);
 
     if (!m_stdOutContent.empty())
     {

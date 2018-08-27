@@ -20,12 +20,14 @@ bool equals_ignore_case(const std::wstring& s1, const std::wstring& s2)
     return CSTR_EQUAL == CompareStringOrdinal(s1.c_str(), static_cast<int>(s1.length()), s2.c_str(), static_cast<int>(s2.length()), true);
 }
 
-HRESULT to_wide_string(const std::string &source, std::wstring &destination)
+void to_wide_string(const std::string &source)
 {
+    std::wstring destination;
+
     int nChars = MultiByteToWideChar(GetConsoleOutputCP(), 0, source.data(), static_cast<int>(source.length()), NULL, 0);
     if (nChars == 0)
     {
-        RETURN_LAST_ERROR();
+        THROW_LAST_ERROR();
     }
 
     destination.resize(nChars);
@@ -33,8 +35,7 @@ HRESULT to_wide_string(const std::string &source, std::wstring &destination)
     MultiByteToWideChar(GetConsoleOutputCP(), 0, source.data(), static_cast<int>(source.length()), destination.data(), nChars);
     if (nChars == 0)
     {
-        RETURN_LAST_ERROR();
+        THROW_LAST_ERROR();
     }
-
-    return S_OK;
+    return destination;
 }
