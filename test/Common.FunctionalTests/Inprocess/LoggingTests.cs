@@ -84,15 +84,9 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
 
             StopServer();
 
-            var files = Directory.GetFiles(_logFolderPath);
-            Assert.Single(files);
+            var file = Directory.GetFiles(_logFolderPath).Single("");
 
-            var starttime = deploymentResult.HostProcess.StartTime.ToUniversalTime();
-            Assert.Equal(Path.Combine(_logFolderPath, $"std_{starttime.Year}{starttime.Month.ToString().PadLeft(2, '0')}" +
-                $"{starttime.Day.ToString().PadLeft(2, '0')}{starttime.Hour.ToString().PadLeft(2, '0')}" +
-                $"{starttime.Minute.ToString().PadLeft(2, '0')}{starttime.Second.ToString().PadLeft(2, '0')}_" +
-                $"{deploymentResult.HostProcess.Id}.log"),
-                files.Single());
+            Assert.Equal();
         }
 
         [ConditionalFact]
@@ -221,6 +215,15 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
                 Assert.Contains("Description: IIS ASP.NET Core Module V2. Commit:", logContents);
                 Assert.Contains("Description: IIS ASP.NET Core Module V2 Request Handler. Commit:", logContents);
             }
+        }
+
+        private string GetLogName(IISDeploymentResult deploymentResult)
+        {
+            var starttime = deploymentResult.HostProcess.StartTime.ToUniversalTime();
+            return Path.Combine(_logFolderPath, $"std_{starttime.Year}{starttime.Month.ToString().PadLeft(2, '0')}" +
+                $"{starttime.Day.ToString().PadLeft(2, '0')}{starttime.Hour.ToString().PadLeft(2, '0')}" +
+                $"{starttime.Minute.ToString().PadLeft(2, '0')}{starttime.Second.ToString().PadLeft(2, '0')}_" +
+                $"{deploymentResult.HostProcess.Id}.log");
         }
     }
 }
