@@ -7,6 +7,7 @@
 #include "SRWExclusiveLock.h"
 #include "StdWrapper.h"
 #include "ntassert.h"
+#include "StringHelpers.h"
 
 #define LOG_IF_DUPFAIL(err) do { if (err == -1) { LOG_IF_FAILED(HRESULT_FROM_WIN32(_doserrno)); } } while (0, 0);
 #define LOG_IF_ERRNO(err) do { if (err != 0) { LOG_IF_FAILED(HRESULT_FROM_WIN32(_doserrno)); } } while (0, 0);
@@ -151,9 +152,7 @@ HRESULT PipeOutputManager::Stop()
 
     // If we captured any output, relog it to the original stdout
     // Useful for the IIS Express scenario as it is running with stdout and stderr
-    int nChars = MultiByteToWideChar(GetConsoleOutputCP(), 0, m_pipeContents, static_cast<int>(m_numBytesReadTotal), NULL, 0);
-    m_stdOutContent.resize(nChars);
-    MultiByteToWideChar(GetConsoleOutputCP(), 0, m_pipeContents, static_cast<int>(m_numBytesReadTotal), m_stdOutContent.data(), nChars);
+    RETURN_IF_FAILED(to_wide_string(std::string(m_pipeContents, m_numBytesReadTotal), m_stdOutContent));
 
     if (!m_stdOutContent.empty())
     {

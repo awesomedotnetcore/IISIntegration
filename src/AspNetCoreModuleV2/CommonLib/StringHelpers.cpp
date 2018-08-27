@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 #include "StringHelpers.h"
+#include "exceptions.h"
 
 bool ends_with(const std::wstring &source, const std::wstring &suffix, bool ignoreCase)
 {
@@ -17,4 +18,23 @@ bool ends_with(const std::wstring &source, const std::wstring &suffix, bool igno
 bool equals_ignore_case(const std::wstring& s1, const std::wstring& s2)
 {
     return CSTR_EQUAL == CompareStringOrdinal(s1.c_str(), static_cast<int>(s1.length()), s2.c_str(), static_cast<int>(s2.length()), true);
+}
+
+HRESULT to_wide_string(const std::string &source, std::wstring &destination)
+{
+    int nChars = MultiByteToWideChar(GetConsoleOutputCP(), 0, source.data(), static_cast<int>(source.length()), NULL, 0);
+    if (nChars == 0)
+    {
+        RETURN_LAST_ERROR();
+    }
+
+    destination.resize(nChars);
+
+    MultiByteToWideChar(GetConsoleOutputCP(), 0, source.data(), static_cast<int>(source.length()), destination.data(), nChars);
+    if (nChars == 0)
+    {
+        RETURN_LAST_ERROR();
+    }
+
+    return S_OK;
 }

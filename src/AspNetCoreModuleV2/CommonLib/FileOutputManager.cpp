@@ -158,10 +158,7 @@ FileOutputManager::Stop()
 
     RETURN_LAST_ERROR_IF(!ReadFile(m_hLogFileHandle, pzFileContents, MAX_FILE_READ_SIZE, &dwNumBytesRead, NULL));
 
-    int nChars = MultiByteToWideChar(GetConsoleOutputCP(), 0, pzFileContents, static_cast<int>(dwNumBytesRead), NULL, 0);
-    m_stdOutContent.resize(nChars);
-
-    MultiByteToWideChar(GetConsoleOutputCP(), 0, pzFileContents, static_cast<int>(dwNumBytesRead), m_stdOutContent.data(), nChars);
+    RETURN_IF_FAILED(to_wide_string(std::string(pzFileContents, dwNumBytesRead), m_stdOutContent));
 
     auto content = GetStdOutContent();
     if (!content.empty())
