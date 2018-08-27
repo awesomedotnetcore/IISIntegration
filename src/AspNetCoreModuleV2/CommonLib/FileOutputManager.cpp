@@ -147,7 +147,7 @@ FileOutputManager::Stop()
     // By doing this, we can close the handle to the file and be done with it.
     THROW_LAST_ERROR_IF(!GetFileSizeEx(m_hLogFileHandle, &li));
 
-    if (li.LowPart == 0 || li.HighPart > 0)
+    if (li.HighPart > 0)
     {
         THROW_IF_FAILED(HRESULT_FROM_WIN32(ERROR_FILE_INVALID));
     }
