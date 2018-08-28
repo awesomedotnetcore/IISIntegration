@@ -22,6 +22,13 @@ bool equals_ignore_case(const std::wstring& s1, const std::wstring& s2)
 
 std::wstring to_wide_string(const std::string &source)
 {
+    // MultiByteToWideChar returns 0 on failure, which is also the same return value
+    // for empty strings. Preemptive return. 
+    if (source.length() == 0)
+    {
+        return L"";
+    }
+
     std::wstring destination;
 
     int nChars = MultiByteToWideChar(GetConsoleOutputCP(), 0, source.data(), static_cast<int>(source.length()), NULL, 0);
