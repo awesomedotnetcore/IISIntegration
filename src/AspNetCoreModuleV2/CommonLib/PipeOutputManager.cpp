@@ -152,15 +152,15 @@ void PipeOutputManager::Stop()
     // Useful for the IIS Express scenario as it is running with stdout and stderr
     m_stdOutContent = to_wide_string(std::string(m_pipeContents, m_numBytesReadTotal));
 
-    if (!m_stdOutContent.empty())
-    {
-        // printf will fail in in full IIS
-        if (wprintf(m_stdOutContent.c_str()) != -1)
-        {
-            // Need to flush contents for the new stdout and stderr
-            _flushall();
-        }
-    }
+    //if (!m_stdOutContent.empty())
+    //{
+    //    // printf will fail in in full IIS
+    //    if (wprintf(m_stdOutContent.c_str()) != -1)
+    //    {
+    //        // Need to flush contents for the new stdout and stderr
+    //        _flushall();
+    //    }
+    //}
 }
 
 std::wstring PipeOutputManager::GetStdOutContent()

@@ -1,9 +1,10 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Server.IIS.FunctionalTests.Utilities;
 using Microsoft.AspNetCore.Server.IntegrationTesting;
@@ -203,6 +204,49 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
                 File.Delete(firstTempFile);
                 File.Delete(secondTempFile);
             }
+        }
+
+        [ConditionalFact]
+        public async Task CheckUnicodePipe()
+        {
+            var path = "CheckUTF8";
+            var deploymentParameters = _fixture.GetBaseDeploymentParameters(_fixture.StartupExceptionWebsite, publish: true);
+            deploymentParameters.WebConfigBasedEnvironmentVariables["ASPNETCORE_INPROCESS_STARTUP_VALUE"] = path;
+
+            var deploymentResult = await DeployAsync(deploymentParameters);
+
+            var response = await deploymentResult.HttpClient.GetAsync(path);
+
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+
+            StopServer();
+
+            Assert.Contains(TestSink.Writes, context => context.Message.Contains("彡⾔"));
+
+            EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "彡⾔");
+        }
+
+        [ConditionalFact]
+        public async Task CheckUnicodeFile()
+        {
+            var path = "CheckUTF8";
+
+            var deploymentParameters = _fixture.GetBaseDeploymentParameters(publish: true);
+
+            deploymentParameters.EnableLogging(_logFolderPath);
+
+            var deploymentResult = await DeployAsync(deploymentParameters);
+
+            await Helpers.AssertStarts(deploymentResult, path);
+
+            StopServer();
+
+            var contents = File.ReadAllText(Helpers.GetExpectedLogName(deploymentResult, _logFolderPath));
+
+            Assert.NotNull(contents);
+            Assert.Contains("彡⾔", contents);
+
+            EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "彡⾔");
         }
 
         private static void AssertLogs(string logPath)

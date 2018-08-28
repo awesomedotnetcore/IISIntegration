@@ -159,16 +159,16 @@ FileOutputManager::Stop()
 
     m_stdOutContent = to_wide_string(std::string(pzFileContents, dwNumBytesRead));
 
-    auto content = GetStdOutContent();
-    if (!content.empty())
-    {
-        // printf will fail in in full IIS
-        if (wprintf(content.c_str()) != -1)
-        {
-            // Need to flush contents for the new stdout and stderr
-            _flushall();
-        }
-    }
+    //auto content = GetStdOutContent();
+    //if (!content.empty())
+    //{
+    //    // printf will fail in in full IIS
+    //    if (wprintf(content.c_str()) != -1)
+    //    {
+    //        // Need to flush contents for the new stdout and stderr
+    //        _flushall();
+    //    }
+    //}
 }
 
 std::wstring FileOutputManager::GetStdOutContent()
