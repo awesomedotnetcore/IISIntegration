@@ -221,8 +221,6 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
 
             StopServer();
 
-            Assert.Contains(TestSink.Writes, context => context.Message.Contains("彡⾔"));
-
             EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "彡⾔");
         }
 
@@ -231,13 +229,16 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
         {
             var path = "CheckUTF8";
 
-            var deploymentParameters = _fixture.GetBaseDeploymentParameters(publish: true);
+            var deploymentParameters = _fixture.GetBaseDeploymentParameters(_fixture.StartupExceptionWebsite, publish: true);
+            deploymentParameters.WebConfigBasedEnvironmentVariables["ASPNETCORE_INPROCESS_STARTUP_VALUE"] = path;
 
             deploymentParameters.EnableLogging(_logFolderPath);
 
             var deploymentResult = await DeployAsync(deploymentParameters);
 
-            await Helpers.AssertStarts(deploymentResult, path);
+            var response = await deploymentResult.HttpClient.GetAsync(path);
+
+            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
             StopServer();
 
