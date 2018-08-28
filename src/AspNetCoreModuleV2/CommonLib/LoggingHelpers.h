@@ -20,8 +20,8 @@ public:
     );
 
     static void TryOperation(void(*func)(std::unique_ptr<IOutputManager>& outputManager),
-            std::unique_ptr<IOutputManager>& outputManager,
-            std::wstring exceptionMessage);
+        std::unique_ptr<IOutputManager>& outputManager,
+        std::wstring exceptionMessage);
 
     static void StartRedirection(
         std::unique_ptr<IOutputManager>& outputManager,

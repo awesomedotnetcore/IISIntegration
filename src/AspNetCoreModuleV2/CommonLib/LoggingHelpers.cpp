@@ -66,7 +66,7 @@ LoggingHelpers::StopRedirection(
     std::unique_ptr<IOutputManager>& outputManager,
     std::wstring exceptionMessage)
 {
-    auto stopLambda = [](std::unique_ptr<IOutputManager>& outputManager) { outputManager->Start(); };
+    auto stopLambda = [](std::unique_ptr<IOutputManager>& outputManager) { outputManager->Stop(); };
 
     LoggingHelpers::TryOperation(stopLambda, outputManager, L"Could not start stdout redirection in shim. HRESULT of Error: '0x%x'.");
 }
