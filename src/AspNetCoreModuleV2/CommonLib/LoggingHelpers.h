@@ -18,5 +18,17 @@ public:
         PCWSTR pwzApplicationPath,
         std::unique_ptr<IOutputManager>& outputManager
     );
+
+    static void TryOperation(void(*func)(std::unique_ptr<IOutputManager>& outputManager),
+            std::unique_ptr<IOutputManager>& outputManager,
+            std::wstring exceptionMessage);
+
+    static void StartRedirection(
+        std::unique_ptr<IOutputManager>& outputManager,
+        std::wstring exceptionMessage);
+
+    static void StopRedirection(
+        std::unique_ptr<IOutputManager>& outputManager,
+        std::wstring exceptionMessage);
 };
 

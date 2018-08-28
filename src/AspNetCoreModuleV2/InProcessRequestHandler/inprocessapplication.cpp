@@ -445,24 +445,14 @@ IN_PROCESS_APPLICATION::ExecuteApplication(
 
     LOG_INFO(L"Starting managed application");
 
-    if (m_pLoggerProvider == NULL)
-    {
-        FINISHED_IF_FAILED(hr = LoggingHelpers::CreateLoggingProvider(
-            m_pConfig->QueryStdoutLogEnabled(),
-            !m_pHttpServer.IsCommandLineLaunch(),
-            m_pConfig->QueryStdoutLogFile().c_str(),
-            QueryApplicationPhysicalPath().c_str(),
-            m_pLoggerProvider));
+    FINISHED_IF_FAILED(hr = LoggingHelpers::CreateLoggingProvider(
+        m_pConfig->QueryStdoutLogEnabled(),
+        !m_pHttpServer.IsCommandLineLaunch(),
+        m_pConfig->QueryStdoutLogFile().c_str(),
+        QueryApplicationPhysicalPath().c_str(),
+        m_pLoggerProvider));
 
-        try
-        {
-            m_pLoggerProvider->Start();
-        }
-        catch (ResultException& exception)
-        {
-            EventLog::Warn(ASPNETCORE_EVENT_GENERAL_WARNING, L"Could not start stdout redirection in inprocess request handler. HRESULT of Error: '0x%x'.", exception.GetResult());
-        }
-    }
+    LoggingHelpers::StartRedirection(m_pLoggerProvider, L"Could not start stdout redirection in inprocess request handler. HRESULT of Error: '0x%x'.");
 
     // There can only ever be a single instance of .NET Core
     // loaded in the process but we need to get config information to boot it up in the
@@ -486,14 +476,7 @@ Finished:
     m_status = MANAGED_APPLICATION_STATUS::SHUTDOWN;
     m_fShutdownCalledFromManaged = TRUE;
 
-    try
-    {
-        m_pLoggerProvider->Stop();
-    }
-    catch (ResultException& exception)
-    {
-        EventLog::Warn(ASPNETCORE_EVENT_GENERAL_WARNING, L"Could not stop stdout redirection in inprocess request handler. HRESULT of Error: '0x%x'.", exception.GetResult());
-    }
+    LoggingHelpers::StopRedirection(m_pLoggerProvider, L"Could not stop stdout redirection in inprocess request handler. HRESULT of Error: '0x%x'.");
 
     if (!m_fShutdownCalledFromNative)
     {

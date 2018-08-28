@@ -71,25 +71,11 @@ HandlerResolver::LoadRequestHandlerAssembly(IHttpApplication &pApplication, Shim
                 pApplication.GetApplicationPhysicalPath(),
                 outputManager));
 
-            try
-            {
-                outputManager->Start();
-            }
-            catch (ResultException& exception)
-            {
-                EventLog::Warn(ASPNETCORE_EVENT_GENERAL_WARNING, L"Could not start stdout redirection in shim. HRESULT of Error: '0x%x'.", exception.GetResult());
-            }
+            LoggingHelpers::StartRedirection(outputManager, L"Could not start stdout redirection in inprocess request handler. HRESULT of Error: '0x%x'.");
 
             hr = FindNativeAssemblyFromHostfxr(*options.get(), pstrHandlerDllName, handlerDllPath);
 
-            try
-            {
-                outputManager->Stop();
-            }
-            catch (ResultException& exception)
-            {
-                EventLog::Warn(ASPNETCORE_EVENT_GENERAL_WARNING, L"Could not stop stdout redirection in shim. HRESULT of Error: '0x%x'.", exception.GetResult());
-            }
+            LoggingHelpers::StopRedirection(outputManager, L"Could not stop stdout redirection in inprocess request handler. HRESULT of Error: '0x%x'.");
 
             if (FAILED(hr) && m_hHostFxrDll != NULL)
             {
