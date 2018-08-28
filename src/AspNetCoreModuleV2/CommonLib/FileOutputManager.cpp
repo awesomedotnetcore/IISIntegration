@@ -159,6 +159,17 @@ FileOutputManager::Stop()
     THROW_LAST_ERROR_IF(!ReadFile(m_hLogFileHandle, pzFileContents, MAX_FILE_READ_SIZE, &dwNumBytesRead, NULL));
 
     m_stdOutContent = to_wide_string(std::string(pzFileContents, dwNumBytesRead));
+
+    auto content = GetStdOutContent();
+    if (!content.empty())
+    {
+        // printf will fail in in full IIS
+        if (wprintf(content.c_str()) != -1)
+        {
+            // Need to flush contents for the new stdout and stderr
+            _flushall();
+        }
+    }
 }
 
 std::wstring FileOutputManager::GetStdOutContent()
