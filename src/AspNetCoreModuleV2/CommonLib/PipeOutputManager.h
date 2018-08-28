@@ -19,8 +19,8 @@ public:
     PipeOutputManager(bool fEnableNativeLogging);
     ~PipeOutputManager();
 
-    HRESULT Start() override;
-    HRESULT Stop() override;
+    void Start() override;
+    void Stop() override;
     std::wstring GetStdOutContent() override;
 
     // Thread functions

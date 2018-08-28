@@ -38,7 +38,7 @@ PipeOutputManager::~PipeOutputManager()
 // Start redirecting stdout and stderr into a pipe
 // Continuously read the pipe on a background thread
 // until Stop is called.
-HRESULT PipeOutputManager::Start()
+void PipeOutputManager::Start()
 {
     SECURITY_ATTRIBUTES     saAttr = { 0 };
     HANDLE                  hStdErrReadPipe;
@@ -65,8 +65,6 @@ HRESULT PipeOutputManager::Start()
         nullptr);      // receive thread identifier
 
     THROW_LAST_ERROR_IF_NULL(m_hErrThread);
-
-    return S_OK;
 }
 
 // Stop redirecting stdout and stderr into a pipe
@@ -74,20 +72,20 @@ HRESULT PipeOutputManager::Start()
 // and prints any output that was captured in the pipe.
 // If more than 30Kb was written to the pipe, that output will
 // be thrown away.
-HRESULT PipeOutputManager::Stop()
+void PipeOutputManager::Stop()
 {
     DWORD    dwThreadStatus = 0;
 
     if (m_disposed)
     {
-        return S_OK;
+        return;
     }
 
     SRWExclusiveLock lock(m_srwLock);
 
     if (m_disposed)
     {
-        return S_OK;
+        return;
     }
 
     m_disposed = true;
@@ -163,8 +161,6 @@ HRESULT PipeOutputManager::Stop()
             _flushall();
         }
     }
-
-    return S_OK;
 }
 
 std::wstring PipeOutputManager::GetStdOutContent()

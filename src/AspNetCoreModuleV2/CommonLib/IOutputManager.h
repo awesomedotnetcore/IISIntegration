@@ -10,7 +10,7 @@ class IOutputManager
 {
 public:
     virtual
-    HRESULT
+    void
     Start() = 0;
 
     virtual
@@ -21,7 +21,7 @@ public:
     GetStdOutContent() = 0;
 
     virtual
-    HRESULT
+    void
     Stop() = 0;
 };
 

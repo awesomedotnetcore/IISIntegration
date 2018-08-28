@@ -35,7 +35,7 @@ FileOutputManager::~FileOutputManager()
 
 // Start redirecting stdout and stderr into the file handle.
 // Uses sttimer to continuously flush output into the file.
-HRESULT
+void
 FileOutputManager::Start()
 {
     SYSTEMTIME systemTime;
@@ -47,14 +47,14 @@ FileOutputManager::Start()
     auto logPath = m_applicationPath / m_stdOutLogFileName;
     create_directories(logPath.parent_path());
 
-    RETURN_LAST_ERROR_IF(!GetProcessTimes(
+    THROW_LAST_ERROR_IF(!GetProcessTimes(
         GetCurrentProcess(), 
         &processCreationTime, 
         &dummyFileTime, 
         &dummyFileTime, 
         &dummyFileTime));
 
-    RETURN_LAST_ERROR_IF(!FileTimeToSystemTime(&processCreationTime, &systemTime));
+    THROW_LAST_ERROR_IF(!FileTimeToSystemTime(&processCreationTime, &systemTime));
 
     m_logFilePath = format(L"%s_%d%02d%02d%02d%02d%02d_%d.log",
         logPath.c_str(),
@@ -87,11 +87,10 @@ FileOutputManager::Start()
     stdoutWrapper->StartRedirection();
     stderrWrapper->StartRedirection();
 
-    return S_OK;
 }
 
 
-HRESULT
+void
 FileOutputManager::Stop()
 {
     CHAR            pzFileContents[MAX_FILE_READ_SIZE] = { 0 };
@@ -103,21 +102,21 @@ FileOutputManager::Stop()
 
     if (m_disposed)
     {
-        return S_OK;
+        return;
     }
 
     SRWExclusiveLock lock(m_srwLock);
 
     if (m_disposed)
     {
-        return S_OK;
+        return;
     }
 
     m_disposed = true;
 
     if (m_hLogFileHandle == INVALID_HANDLE_VALUE)
     {
-        return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
+        THROW_IF_FAILED(HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND));
     }
 
     FlushFileBuffers(m_hLogFileHandle);
@@ -170,8 +169,6 @@ FileOutputManager::Stop()
             _flushall();
         }
     }
-
-    return S_OK;
 }
 
 std::wstring FileOutputManager::GetStdOutContent()

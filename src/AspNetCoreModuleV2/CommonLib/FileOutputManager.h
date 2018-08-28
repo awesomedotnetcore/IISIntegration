@@ -20,8 +20,8 @@ public:
     ~FileOutputManager();
 
     virtual std::wstring GetStdOutContent() override;
-    virtual HRESULT Start() override;
-    virtual HRESULT Stop() override;
+    void Start() override;
+    void Stop() override;
 
 private:
     HandleWrapper<InvalidHandleTraits> m_hLogFileHandle;

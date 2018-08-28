@@ -13,14 +13,12 @@ public:
 
     ~NullOutputManager() = default;
 
-    HRESULT Start()
+    void Start()
     {
-        return S_OK;
     }
 
-    HRESULT Stop()
+    void Stop()
     {
-        return S_OK;
     }
 
     std::wstring GetStdOutContent()

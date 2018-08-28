@@ -68,6 +68,11 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
             var deploymentResult = await DeployAsync(deploymentParameters);
 
             await Helpers.AssertStarts(deploymentResult, "HelloWorld");
+
+            StopServer();
+
+            EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "Could not start stdout redirection in shim. HRESULT of Error: '0x80070003'.");
+            EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "Could not start stdout redirection in inprocess request handler. HRESULT of Error: '0x80070003'.");
         }
 
         [ConditionalFact]

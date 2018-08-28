@@ -29,9 +29,9 @@ namespace PipeOutputManagerTests
 
         PipeOutputManager* pManager = new PipeOutputManager(true);
 
-        ASSERT_EQ(S_OK, pManager->Start());
+        pManager->Start();
         fwprintf(stdout, expected);
-        ASSERT_EQ(S_OK, pManager->Stop());
+        pManager->Stop();
 
         auto output = pManager->GetStdOutContent();
         ASSERT_STREQ(output.c_str(), expected);
@@ -42,9 +42,9 @@ namespace PipeOutputManagerTests
     {
         PipeOutputManager* pManager = new PipeOutputManager(true);
 
-        ASSERT_EQ(S_OK, pManager->Start());
+        pManager->Start();
         fprintf(stdout, "test");
-        ASSERT_EQ(S_OK, pManager->Stop());
+        pManager->Stop();
 
         auto output = pManager->GetStdOutContent();
         ASSERT_STREQ(output.c_str(), L"test");
@@ -57,9 +57,9 @@ namespace PipeOutputManagerTests
 
         PipeOutputManager* pManager = new PipeOutputManager();
 
-        ASSERT_EQ(S_OK, pManager->Start());
+        pManager->Start();
         fwprintf(stderr, expected);
-        ASSERT_EQ(S_OK, pManager->Stop());
+        pManager->Stop();
 
         auto output = pManager->GetStdOutContent();
         ASSERT_STREQ(output.c_str(), expected);
@@ -76,9 +76,9 @@ namespace PipeOutputManagerTests
 
         PipeOutputManager* pManager = new PipeOutputManager();
 
-        ASSERT_EQ(S_OK, pManager->Start());
+        pManager->Start();
         wprintf(test.c_str());
-        ASSERT_EQ(S_OK, pManager->Stop());
+        pManager->Stop();
 
         auto output = pManager->GetStdOutContent();
         ASSERT_EQ(output.size(), (DWORD)30000);
@@ -96,7 +96,7 @@ namespace PipeOutputManagerTests
         PCWSTR expected = L"test";
 
         PipeOutputManager* pManager = new PipeOutputManager();
-        ASSERT_EQ(S_OK, pManager->Start());
+        pManager->Start();
 
         _dup2(m_fdPreviousStdOut, _fileno(stdout));
         _dup2(m_fdPreviousStdErr, _fileno(stderr));
@@ -117,10 +117,10 @@ namespace PipeOutputManagerTests
 
             PipeOutputManager* pManager = new PipeOutputManager();
 
-            ASSERT_EQ(S_OK, pManager->Start());
+            pManager->Start();
             fwprintf(stdout, expected);
 
-            ASSERT_EQ(S_OK, pManager->Stop());
+            pManager->Stop();
 
             auto output = pManager->GetStdOutContent();
             ASSERT_STREQ(output.c_str(), expected);
@@ -143,9 +143,9 @@ namespace PipeOutputManagerTests
 
             PipeOutputManager* pManager = new PipeOutputManager();
 
-            ASSERT_EQ(S_OK, pManager->Start());
+            pManager->Start();
             fwprintf(stderr, expected);
-            ASSERT_EQ(S_OK, pManager->Stop());
+            pManager->Stop();
 
             auto output = pManager->GetStdOutContent();
             ASSERT_STREQ(output.c_str(), expected);

@@ -454,7 +454,14 @@ IN_PROCESS_APPLICATION::ExecuteApplication(
             QueryApplicationPhysicalPath().c_str(),
             m_pLoggerProvider));
 
-        LOG_IF_FAILED(m_pLoggerProvider->Start());
+        try
+        {
+            m_pLoggerProvider->Start();
+        }
+        catch (ResultException& exception)
+        {
+            EventLog::Warn(ASPNETCORE_EVENT_GENERAL_WARNING, L"Could not start stdout redirection in inprocess request handler. HRESULT of Error: '0x%x'.", exception.GetResult());
+        }
     }
 
     // There can only ever be a single instance of .NET Core
@@ -479,7 +486,14 @@ Finished:
     m_status = MANAGED_APPLICATION_STATUS::SHUTDOWN;
     m_fShutdownCalledFromManaged = TRUE;
 
-    m_pLoggerProvider->Stop();
+    try
+    {
+        m_pLoggerProvider->Stop();
+    }
+    catch (ResultException& exception)
+    {
+        EventLog::Warn(ASPNETCORE_EVENT_GENERAL_WARNING, L"Could not stop stdout redirection in inprocess request handler. HRESULT of Error: '0x%x'.", exception.GetResult());
+    }
 
     if (!m_fShutdownCalledFromNative)
     {
