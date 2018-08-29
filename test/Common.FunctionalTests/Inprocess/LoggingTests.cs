@@ -221,6 +221,7 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
 
             StopServer();
 
+            // How can I check the TestSink?
             EventLogHelpers.VerifyEventLogEvent(deploymentResult, TestSink, "彡⾔");
         }
 
