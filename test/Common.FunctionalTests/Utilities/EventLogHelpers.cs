@@ -23,26 +23,7 @@ namespace Microsoft.AspNetCore.Server.IISIntegration.FunctionalTests
         {
             Assert.True(deploymentResult.HostProcess.HasExited);
 
-            var builder = new StringBuilder();
-
-            foreach (var context in testSink.Writes)
-            {
-                builder.Append(context.Message);
-            }
-
-            var count = 0;
-            var expectedRegex = new Regex(expectedRegexMatchString, RegexOptions.Singleline);
-            foreach (Match match in EventLogRegex.Matches(builder.ToString()))
-            {
-                var eventLogText = match.Groups["EventLogMessage"].Value;
-                if (expectedRegex.IsMatch(eventLogText))
-                {
-                    count++;
-                }
-            }
-
-            Assert.True(count > 0, $"'{expectedRegexMatchString}' didn't match any event log messaged");
-            Assert.True(count < 2, $"'{expectedRegexMatchString}' matched more then one event log message");
+            var expectedRegex = new Regex(expectedRegexMatchString);
 
             var eventLog = new EventLog("Application");
 
