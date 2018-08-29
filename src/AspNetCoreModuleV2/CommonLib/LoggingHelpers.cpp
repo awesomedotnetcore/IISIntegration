@@ -17,7 +17,7 @@
 HRESULT
 LoggingHelpers::CreateLoggingProvider(
     bool fIsLoggingEnabled,
-    bool fEnableNativeLogging,
+    bool ,
     PCWSTR pwzStdOutFileName,
     PCWSTR pwzApplicationPath,
     std::unique_ptr<IOutputManager>& outputManager
@@ -31,12 +31,12 @@ LoggingHelpers::CreateLoggingProvider(
     {
         if (fIsLoggingEnabled)
         {
-            auto manager = std::make_unique<FileOutputManager>(pwzStdOutFileName, pwzApplicationPath, fEnableNativeLogging);
+            auto manager = std::make_unique<FileOutputManager>(pwzStdOutFileName, pwzApplicationPath, false);
             outputManager = std::move(manager);
         }
         else if (!GetConsoleWindow())
         {
-            outputManager = std::make_unique<PipeOutputManager>(fEnableNativeLogging);
+            outputManager = std::make_unique<PipeOutputManager>(false);
         }
         else
         {

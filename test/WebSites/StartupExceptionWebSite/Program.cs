@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using System.Security;
 using System.Text;
 
 namespace IISTestSite
@@ -25,10 +27,14 @@ namespace IISTestSite
             }
             else if (envVariable == "CheckLogFile")
             {
+                Console.OutputEncoding = Console.OutputEncoding;
+
                 Console.WriteLine($"Random number: {randomNumber}");
             }
             else if (envVariable == "CheckErrLogFile")
             {
+                Console.OutputEncoding = Console.OutputEncoding;
+
                 Console.Error.WriteLine($"Random number: {randomNumber}");
                 Console.Error.Flush();
             }
@@ -44,7 +50,18 @@ namespace IISTestSite
             }
             else if (envVariable == "CheckUTF8")
             {
-                Console.OutputEncoding = Encoding.UTF8;
+                try
+                {
+                    Console.OutputEncoding = Encoding.UTF8;
+                }
+                catch (IOException ioe)
+                {
+                    Console.WriteLine(ioe.Message);
+                }
+                catch (SecurityException securityException)
+                {
+                    Console.WriteLine(securityException.Message);
+                }
                 Console.WriteLine("彡⾔");
             }
         }
