@@ -108,11 +108,6 @@ HRESULT PipeOutputManager::Stop()
 
     m_disposed = true;
 
-    if (m_fCreatedConsole)
-    {
-        FreeConsole();
-    }
-
     // Both pipe wrappers duplicate the pipe writer handle
     // meaning we are fine to close the handle too.
     if (m_hErrWritePipe != INVALID_HANDLE_VALUE)

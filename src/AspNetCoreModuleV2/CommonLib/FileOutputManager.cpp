@@ -145,11 +145,6 @@ FileOutputManager::Stop()
 
     m_disposed = true;
 
-    if (m_fCreatedConsole)
-    {
-        RETURN_LAST_ERROR_IF(!FreeConsole());
-    }
-
     if (m_hLogFileHandle == INVALID_HANDLE_VALUE)
     {
         return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
