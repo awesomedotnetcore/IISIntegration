@@ -4,15 +4,14 @@
 #pragma once
 
 #include "sttimer.h"
-#include "IOutputManager.h"
 #include "HandleWrapper.h"
 #include "StdWrapper.h"
 #include "stringa.h"
 #include "stringu.h"
+#include "BaseOutputManager.h"
 
-class FileOutputManager : public IOutputManager
+class FileOutputManager : public BaseOutputManager
 {
-    #define FILE_FLUSH_TIMEOUT 3000
     #define MAX_FILE_READ_SIZE 30000
 public:
     FileOutputManager(PCWSTR pwzApplicationPath, PCWSTR pwzStdOutLogFileName);
@@ -28,10 +27,4 @@ private:
     std::wstring m_stdOutLogFileName;
     std::filesystem::path m_applicationPath;
     std::filesystem::path m_logFilePath;
-    std::wstring m_stdOutContent;
-    bool m_disposed;
-    bool m_enableNativeRedirection;
-    SRWLOCK m_srwLock{};
-    std::unique_ptr<StdWrapper> stdoutWrapper;
-    std::unique_ptr<StdWrapper> stderrWrapper;
 };

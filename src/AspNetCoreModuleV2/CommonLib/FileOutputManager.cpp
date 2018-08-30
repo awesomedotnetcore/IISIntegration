@@ -17,11 +17,8 @@ FileOutputManager::FileOutputManager(PCWSTR pwzStdOutLogFileName, PCWSTR pwzAppl
     FileOutputManager(pwzStdOutLogFileName, pwzApplicationPath, /* fEnableNativeLogging */ true) { }
 
 FileOutputManager::FileOutputManager(PCWSTR pwzStdOutLogFileName, PCWSTR pwzApplicationPath, bool fEnableNativeLogging) :
+    BaseOutputManager(fEnableNativeLogging),
     m_hLogFileHandle(INVALID_HANDLE_VALUE),
-    m_disposed(false),
-    stdoutWrapper(nullptr),
-    stderrWrapper(nullptr),
-    m_enableNativeRedirection(fEnableNativeLogging),
     m_applicationPath(pwzApplicationPath),
     m_stdOutLogFileName(pwzStdOutLogFileName)
 {
@@ -86,9 +83,7 @@ FileOutputManager::Start()
 
     stdoutWrapper->StartRedirection();
     stderrWrapper->StartRedirection();
-
 }
-
 
 void
 FileOutputManager::Stop()

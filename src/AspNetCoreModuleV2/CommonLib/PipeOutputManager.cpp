@@ -1,8 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-#include "stdafx.h"
 #include "PipeOutputManager.h"
+
+#include "stdafx.h"
 #include "Exceptions.h"
 #include "SRWExclusiveLock.h"
 #include "StdWrapper.h"
@@ -18,16 +19,12 @@ PipeOutputManager::PipeOutputManager()
 }
 
 PipeOutputManager::PipeOutputManager(bool fEnableNativeLogging) :
+    BaseOutputManager(fEnableNativeLogging),
     m_hErrReadPipe(INVALID_HANDLE_VALUE),
     m_hErrWritePipe(INVALID_HANDLE_VALUE),
     m_hErrThread(nullptr),
-    m_numBytesReadTotal(0),
-    m_disposed(FALSE),
-    m_enableNativeRedirection(fEnableNativeLogging),
-    stdoutWrapper(nullptr),
-    stderrWrapper(nullptr)
+    m_numBytesReadTotal(0)
 {
-    InitializeSRWLock(&m_srwLock);
 }
 
 PipeOutputManager::~PipeOutputManager()
