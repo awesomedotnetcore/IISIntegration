@@ -20,8 +20,7 @@ FileOutputManager::FileOutputManager(bool fEnableNativeLogging) :
     m_disposed(false),
     stdoutWrapper(nullptr),
     stderrWrapper(nullptr),
-    m_fEnableNativeRedirection(fEnableNativeLogging),
-    m_fCreatedConsole(false)
+    m_fEnableNativeRedirection(fEnableNativeLogging)
 {
     InitializeSRWLock(&m_srwLock);
 }

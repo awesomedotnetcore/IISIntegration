@@ -24,8 +24,7 @@ PipeOutputManager::PipeOutputManager(bool fEnableNativeLogging) :
     m_disposed(FALSE),
     m_fEnableNativeRedirection(fEnableNativeLogging),
     stdoutWrapper(nullptr),
-    stderrWrapper(nullptr),
-    m_fCreatedConsole(false)
+    stderrWrapper(nullptr)
 {
     InitializeSRWLock(&m_srwLock);
 }
@@ -53,10 +52,6 @@ HRESULT PipeOutputManager::Start()
         {
             RETURN_LAST_ERROR();
         }
-    }
-    else
-    {
-        m_fCreatedConsole = true;
     }
 
     RETURN_LAST_ERROR_IF(!CreatePipe(&hStdErrReadPipe, &hStdErrWritePipe, &saAttr, 0 /*nSize*/));
