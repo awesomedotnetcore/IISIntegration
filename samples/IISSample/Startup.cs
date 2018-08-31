@@ -30,7 +30,6 @@ namespace IISSample
 
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerfactory, IAuthenticationSchemeProvider authSchemeProvider)
         {
-            
             var logger = loggerfactory.CreateLogger("Requests");
 
             app.Run(async (context) =>
